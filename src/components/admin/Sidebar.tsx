@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/cn';
 import { fazerLogout } from '@/app/login/actions';
+import { ThemeToggle } from './ThemeToggle';
 import {
   IconeVisaoGeral,
   IconePonto,
@@ -68,6 +69,7 @@ export function Sidebar({ nomeUsuario, nomeEmpresa }: { nomeUsuario: string; nom
       </nav>
 
       <div className="border-t border-outline-variant p-4">
+        <ThemeToggle />
         <div className="mb-3 flex items-center gap-2.5">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-container-high text-xs font-bold text-on-surface">
             {iniciais(nomeUsuario)}

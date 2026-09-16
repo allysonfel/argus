@@ -155,3 +155,16 @@ export const IconeAssinatura = (p: IconeProps) => (
     <path d="M4 12 14 2l3 3L7 15H4v-3z" />
   </Base>
 );
+
+export const IconeSol = (p: IconeProps) => (
+  <Base {...p}>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12H5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8" />
+  </Base>
+);
+
+export const IconeLua = (p: IconeProps) => (
+  <Base {...p}>
+    <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />
+  </Base>
+);

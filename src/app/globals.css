@@ -65,6 +65,64 @@
     -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, 'Segoe UI', Roboto, sans-serif;
 }
 
+/*
+ * Modo escuro — mesmo padrão do outro produto Logos (ThemeToggle.tsx +
+ * script bloqueante em layout.tsx): classe "dark" na <html>, sem
+ * @media prefers-color-scheme, sem Context/Provider. Claro continua
+ * sendo o padrão; a classe só existe quando a pessoa escolhe.
+ */
+html.dark {
+  --color-surface: #1a1c1e;
+  --color-surface-dim: #131415;
+  --color-surface-bright: #26282b;
+  --color-surface-container-lowest: #131415;
+  --color-surface-container-low: #202225;
+  --color-surface-container: #26282b;
+  --color-surface-container-high: #2f3134;
+  --color-surface-container-highest: #3a3c40;
+  --color-on-surface: #e7e7e7;
+  --color-on-surface-variant: #a3a3a3;
+  --color-outline: #6b6b6b;
+  --color-outline-variant: #45474a;
+  --color-inverse-surface: #f3f3f3;
+  --color-inverse-on-surface: #1e2124;
+
+  --color-primary: #5b8cf5;
+  --color-on-primary: #06132c;
+  --color-primary-container: #16233f;
+  --color-on-primary-container: #a9c6ff;
+  --color-primary-hover: #7ba1f7;
+  --color-primary-active: #416ecf;
+
+  --color-secondary: #5b8cf5;
+  --color-on-secondary: #06132c;
+  --color-secondary-container: #16233f;
+  --color-on-secondary-container: #a9c6ff;
+
+  --color-tertiary: #55b8e8;
+  --color-on-tertiary: #00293b;
+  --color-tertiary-container: #0f3346;
+  --color-on-tertiary-container: #aee0f7;
+
+  --color-success: #4ade80;
+  --color-on-success: #06280f;
+  --color-success-container: #0f3a1e;
+  --color-on-success-container: #86efac;
+
+  --color-error: #ff6b61;
+  --color-on-error: #3a0a06;
+  --color-error-container: #4a120d;
+  --color-on-error-container: #ffb4ac;
+
+  --color-warning: #fbbf24;
+  --color-on-warning: #3a2905;
+  --color-warning-container: #4a3407;
+  --color-on-warning-container: #fde68a;
+
+  --color-background: var(--color-surface-dim);
+  --color-foreground: var(--color-on-surface);
+}
+
 @theme inline {
   --color-surface: var(--color-surface);
   --color-surface-dim: var(--color-surface-dim);
