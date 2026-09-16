@@ -10,4 +10,17 @@ const semSsl = url.includes('railway.internal') || url.includes('localhost') || 
 
 export const sql = postgres(url, {
   ssl: semSsl ? false : 'require',
+  // Colunas DATE (sem hora) vêm por padrão como objeto JS Date — em UTC
+  // meia-noite, o que pode até exibir o dia errado dependendo do fuso
+  // local. Como o app inteiro trata DATE como string "yyyy-mm-dd" (ver
+  // src/lib/tipos.ts e src/lib/datas.ts), desliga o parser aqui: fica a
+  // string crua que o Postgres já manda, sem conversão nenhuma.
+  types: {
+    date: {
+      to: 1082,
+      from: [1082],
+      serialize: (x: string) => x,
+      parse: (x: string) => x,
+    },
+  },
 });
