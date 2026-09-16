@@ -23,7 +23,7 @@ export default async function PendenciasPontoPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-on-surface">Pendências de ponto</h1>
+      <h1 className="mb-1 text-2xl font-semibold text-on-surface">Pendências de ponto</h1>
       <p className="mb-6 text-sm text-on-surface-variant">Ajustes aguardando análise, cartões sem assinatura e solicitações de colaboradores.</p>
 
       <Card className="mb-6">
