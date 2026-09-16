@@ -1,0 +1,128 @@
+@import 'tailwindcss';
+
+/*
+ * Tokens vindos do DESIGN.md do outro produto Logos Company (mesma marca,
+ * mesmo cliente) — reaproveitados aqui integralmente porque a variante
+ * "admin/dashboard" descrita lá (cantos retos rounded-sm em controles,
+ * hairline borders em vez de sombra, azul só em estado ativo/CTA, ícones
+ * finos na sidebar) é exatamente o estilo pedido pro Argus. Ver
+ * DECISIONS.md. Argus é só painel administrativo — não usamos a variante
+ * "site público" (botões em pílula) daquele arquivo.
+ */
+
+:root {
+  --color-surface: #ffffff;
+  --color-surface-dim: #f9f9f9;
+  --color-surface-bright: #ffffff;
+  --color-surface-container-lowest: #f4f7f6;
+  --color-surface-container-low: #f3f3f3;
+  --color-surface-container: #efefef;
+  --color-surface-container-high: #e8e8e8;
+  --color-surface-container-highest: #dcdcdc;
+  --color-on-surface: #1e2124;
+  --color-on-surface-variant: #636363;
+  --color-outline: #767676;
+  --color-outline-variant: #b9b9b9;
+  --color-inverse-surface: #202426;
+  --color-inverse-on-surface: #f3f3f3;
+
+  --color-primary: #2563eb;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #eff6ff;
+  --color-on-primary-container: #1d4ed8;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-active: #1e40af;
+
+  --color-secondary: #4e8af7;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #e8f1ff;
+  --color-on-secondary-container: #4e8af7;
+
+  --color-tertiary: #147eb3;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #d4ebf7;
+  --color-on-tertiary-container: #147eb3;
+
+  --color-success: #16a34a;
+  --color-on-success: #ffffff;
+  --color-success-container: #dcfce7;
+  --color-on-success-container: #15803d;
+
+  --color-error: #ff4136;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffe8e6;
+  --color-on-error-container: #ff4136;
+
+  --color-warning: #f59e0b;
+  --color-on-warning: #ffffff;
+  --color-warning-container: #fef3c7;
+  --color-on-warning-container: #b45309;
+
+  --color-background: var(--color-surface-dim);
+  --color-foreground: var(--color-on-surface);
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+@theme inline {
+  --color-surface: var(--color-surface);
+  --color-surface-dim: var(--color-surface-dim);
+  --color-surface-container-lowest: var(--color-surface-container-lowest);
+  --color-surface-container-low: var(--color-surface-container-low);
+  --color-surface-container: var(--color-surface-container);
+  --color-surface-container-high: var(--color-surface-container-high);
+  --color-surface-container-highest: var(--color-surface-container-highest);
+  --color-on-surface: var(--color-on-surface);
+  --color-on-surface-variant: var(--color-on-surface-variant);
+  --color-outline: var(--color-outline);
+  --color-outline-variant: var(--color-outline-variant);
+
+  --color-primary: var(--color-primary);
+  --color-on-primary: var(--color-on-primary);
+  --color-primary-container: var(--color-primary-container);
+  --color-on-primary-container: var(--color-on-primary-container);
+
+  --color-secondary: var(--color-secondary);
+  --color-secondary-container: var(--color-secondary-container);
+  --color-on-secondary-container: var(--color-on-secondary-container);
+
+  --color-tertiary: var(--color-tertiary);
+  --color-tertiary-container: var(--color-tertiary-container);
+
+  --color-success: var(--color-success);
+  --color-success-container: var(--color-success-container);
+  --color-on-success-container: var(--color-on-success-container);
+
+  --color-error: var(--color-error);
+  --color-error-container: var(--color-error-container);
+  --color-on-error-container: var(--color-on-error-container);
+
+  --color-warning: var(--color-warning);
+  --color-warning-container: var(--color-warning-container);
+  --color-on-warning-container: var(--color-on-warning-container);
+
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+
+  --font-sans: var(--font-sans);
+}
+
+html,
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Leaflet precisa da própria altura explícita no container — ver MapaBase.tsx */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  z-index: 0;
+}

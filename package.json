@@ -1,0 +1,37 @@
+{
+  "name": "argus-sistema",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sistema Argus — gestão de operação (ponto eletrônico com IA, rastreio de dispositivos, uso digital e alertas) para clientes da Logos Company.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed": "tsx scripts/seed.ts"
+  },
+  "dependencies": {
+    "next": "16.3.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "postgres": "^3.4.9",
+    "bcryptjs": "^2.4.3",
+    "leaflet": "^1.9.4",
+    "react-leaflet": "^5.0.0",
+    "recharts": "^2.13.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/leaflet": "^1.9.14",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.3",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "tsx": "^4.19.2"
+  }
+}
