@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "sh scripts/iniciar-producao.sh",
     "lint": "eslint",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts"
@@ -19,7 +19,8 @@
     "bcryptjs": "^2.4.3",
     "leaflet": "^1.9.4",
     "react-leaflet": "^5.0.0",
-    "recharts": "^2.13.3"
+    "recharts": "^2.13.3",
+    "tsx": "^4.19.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -31,7 +32,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "tsx": "^4.19.2"
+    "typescript": "^5"
   }
 }
