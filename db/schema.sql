@@ -219,3 +219,10 @@ CREATE TABLE IF NOT EXISTS uso_digital_eventos (
 );
 CREATE INDEX IF NOT EXISTS idx_uso_digital_colab ON uso_digital_eventos(colaborador_id, ocorrido_em);
 CREATE INDEX IF NOT EXISTS idx_uso_digital_empresa ON uso_digital_eventos(empresa_id, ocorrido_em);
+
+-- Autenticação do futuro agente de desktop (ver DECISIONS.md pro
+-- contrato completo do endpoint de ingestão): uma chave de API por
+-- empresa + um código estável por colaborador, pra identificar quem
+-- mandou o evento sem precisar de sessão de navegador.
+ALTER TABLE empresas ADD COLUMN IF NOT EXISTS chave_api TEXT UNIQUE;
+ALTER TABLE colaboradores ADD COLUMN IF NOT EXISTS codigo_agente TEXT UNIQUE;

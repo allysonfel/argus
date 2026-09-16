@@ -32,8 +32,9 @@ async function main() {
   }
 
   console.log('Criando empresa...');
+  const chaveApi = `argus_live_${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`;
   const [empresa] = await sql<{ id: number }[]>`
-    INSERT INTO empresas (nome, cnpj) VALUES ('Construtora Nordeste Ltda', '12.345.678/0001-90') RETURNING id
+    INSERT INTO empresas (nome, cnpj, chave_api) VALUES ('Construtora Nordeste Ltda', '12.345.678/0001-90', ${chaveApi}) RETURNING id
   `;
   const empresaId = empresa.id;
 
@@ -80,12 +81,12 @@ async function main() {
     const [row] = await sql<{ id: number }[]>`
       INSERT INTO colaboradores
         (empresa_id, unidade_id, departamento_id, nome, cargo, cpf, email, telefone, data_admissao, status,
-         horario_entrada_padrao, horario_saida_padrao)
+         horario_entrada_padrao, horario_saida_padrao, codigo_agente)
       VALUES
         (${empresaId}, ${unidade.id}, ${escolher(departamentos).id}, ${nomes[i]}, ${escolher(cargos)},
          ${String(10000000000 + i * 137).padStart(11, '0')}, ${`${nomes[i].toLowerCase().split(' ')[0]}@construtoranordeste.com.br`},
          ${`(81) 9${aleatorio(1000, 9999)}-${aleatorio(1000, 9999)}`}, ${admissao.toISOString().slice(0, 10)}, ${status},
-         '07:30', '17:00')
+         '07:30', '17:00', ${`AGT-${String(1000 + i)}`})
       RETURNING id
     `;
     colaboradores.push({ id: row.id, nome: nomes[i], unidadeId: unidade.id });
