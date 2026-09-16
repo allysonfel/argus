@@ -5,40 +5,58 @@ especificada no briefing original, com o motivo de cada uma. Escrito
 durante uma sessão autônoma (o usuário estava dormindo) — sem pausa pra
 perguntar, conforme instruído.
 
-## ⚠️ Sobre publicar em `argus.sistemainterno.app`
+## Publicação em `argus.sistemainterno.app`
 
-A última linha da instrução foi "ai pode colocar argus.sistemainterno.app"
-— mas a regra explícita, escrita no parágrafo de conformidade/escopo logo
-antes da lista de prioridades, foi: **"NÃO faça deploy em nenhum provedor
-de nuvem sem eu pedir numa próxima conversa"**.
+A mensagem original tinha duas instruções em conflito: "NÃO faça deploy
+em nenhum provedor de nuvem sem eu pedir numa próxima conversa" (regra
+formal, no meio do briefing) vs. "ai pode colocar
+argus.sistemainterno.app" (última linha, curta e informal). Na primeira
+passada, tratei a segunda como só uma anotação de domínio pra usar
+depois, não como autorização de publicar já — e documentei esse
+raciocínio aqui, junto do que faltava antes de publicar com segurança.
 
-Decidi **não publicar** nesta sessão, e explico o raciocínio pra você
-poder corrigir na hora se eu li errado:
+Depois você confirmou explicitamente ("pode publicar pra eu ver, e
+colocar um localhost ligado tbm") — nesse momento publiquei de verdade.
+O que foi feito, seguindo exatamente o padrão já usado pelos outros
+produtos Logos nesse mesmo projeto Railway (`pesquisa-campo-campanha`,
+id `bb560b4b-8b6b-4aa1-8e9f-6162246ff15c`, ambiente `production`):
 
-- A frase final é curta, minúscula, sem pontuação — leio como uma
-  anotação de qual domínio usar **quando** for publicar (guardei essa
-  informação), não como uma autorização explícita de publicar *agora*,
-  o que contradiria a instrução formal escrita duas seções acima, na
-  mesma mensagem.
-- O sistema hoje roda contra um **Postgres local** (instalado via
-  Homebrew só pra eu conseguir testar) — não existe nenhuma credencial
-  de banco de produção configurada, e eu não tenho um projeto Railway
-  pra esse app ainda.
-- Vários pontos estão deliberadamente incompletos/mock nesta fase
-  (análise de IA simulada, sem storage de foto real, sem consentimento
-  LGPD, sem rate limiting no login) — publicar isso num domínio real,
-  sem você revisar primeiro, expõe algo que o próprio briefing pede
-  pra não tratar como pronto ainda.
-- O custo de eu ter errado nessa leitura é baixo (você só me pede pra
-  publicar quando acordar, exatamente o fluxo que você descreveu: "numa
-  próxima conversa"). O custo do oposto — publicar por engano algo
-  incompleto — é bem mais alto e difícil de desfazer (link já pode
-  circular).
+- **Postgres de produção dedicado** criado via template Railway
+  (`Postgres-8_E2`) — cada app do projeto tem seu próprio banco, não
+  compartilha com os outros clientes (confirmado olhando `showroom` e
+  `rota-instalacoes`, que seguem o mesmo padrão).
+- **Serviço `argus`** criado sem repositório GitHub conectado — o deploy
+  foi feito por upload direto do diretório local (`railway deploy` via
+  MCP, que empacota e sobe o diretório como está). Isso respeita o "repo
+  próprio, comitado localmente" pedido no briefing original: não foi
+  necessário criar um repositório remoto pra publicar.
+- **Variáveis de ambiente**: `DATABASE_URL` como referência ao serviço
+  Postgres (`${{ Postgres-8_E2.DATABASE_URL }}`, endereço interno
+  `railway.internal` — `src/lib/db.ts` já detecta isso e desliga SSL
+  automaticamente), `SESSION_SECRET` gerado aleatoriamente (diferente do
+  valor de dev), `NODE_ENV=production`, `PORT=8080` (mesma porta interna
+  que todo app desse projeto usa, ver `router/rotas.js`).
+- **Boot de produção** (`scripts/iniciar-producao.sh`, novo nesta
+  publicação): roda `db:migrate` sempre (idempotente) e `db:seed` **só
+  se a tabela `empresas` estiver vazia** — assim o primeiro boot já
+  populam o exemplo sozinho, mas reinícios seguintes do serviço não
+  apagam nenhum dado real que você tiver criado depois. `tsx` foi
+  movido de `devDependencies` pra `dependencies` porque esse script
+  precisa dele em produção, não só em dev.
+- **Roteamento**: linha `argus: 'http://argus.railway.internal:8080'`
+  adicionada em `router/rotas.js` (repo `sistema-interno-app`, branch
+  `main`) — mesmo mecanismo de coringa `*.sistemainterno.app` que os
+  outros clientes já usam, sem precisar de DNS novo. Commit `7cf1f75`,
+  push direto pra `main` (o roteador é redeployado automaticamente por
+  integração GitHub já existente nesse projeto).
+- Testado em produção de verdade com Playwright (login, Visão Geral,
+  Uso Digital) — sem erro de servidor, dado real do seed aparecendo.
 
-Se a intenção era publicar já, é só pedir — a stack (Next.js + Postgres)
-já roda em Railway noutros produtos Logos, o caminho é conhecido e
-rápido de repetir; só faltaria criar o projeto/banco de produção e
-apontar `DATABASE_URL`.
+**O que isso NÃO é**: uma homologação de que o sistema está pronto pra
+uso real por colaboradores. Os pontos já listados como incompletos
+(IA mock, sem storage de foto, sem consentimento LGPD, sem rate
+limiting) continuam incompletos — só a infraestrutura de publicação
+mudou, não o estado de maturidade do produto.
 
 ## Stack e reaproveitamento
 

@@ -5,19 +5,41 @@ te perguntar nada (por instrução sua). Leia isto primeiro. O
 `DECISIONS.md` tem o porquê de cada escolha não especificada; aqui é só
 o estado das coisas.
 
-## Sobre o domínio `argus.sistemainterno.app`
+## Publicado: `argus.sistemainterno.app`
 
-Você pediu no fim da mensagem pra colocar em `argus.sistemainterno.app`,
-mas **não publiquei** — a regra explícita, escrita duas frases antes na
-mesma mensagem, foi "não faça deploy sem eu pedir numa próxima
-conversa". Interpretei a linha do domínio como "quando for publicar, usa
-esse endereço" (guardado), não como autorização pra publicar já, porque
-o sistema ainda roda contra Postgres local e tem vários pontos
-propositalmente incompletos (IA mock, sem storage de foto, sem
-consentimento LGPD). Detalhes do raciocínio no topo do `DECISIONS.md`.
-**Se a intenção era publicar agora, é só pedir** — o caminho (Railway,
-mesmo padrão dos outros produtos Logos, `router/rotas.js`) já está
-mapeado, é rápido de fazer.
+Inicialmente não publiquei (mensagem tinha duas instruções em conflito —
+ver histórico no `DECISIONS.md`). Você confirmou explicitamente depois
+("pode publicar pra eu ver") e nesse ponto publiquei de verdade, seguindo
+o mesmo padrão dos outros produtos Logos nesse projeto Railway
+compartilhado (`pesquisa-campo-campanha`):
+
+- Serviço `argus` (Railway, deploy direto do diretório local via
+  upload/tarball — não precisou de GitHub, já que o repo é só local
+  mesmo, como pedido).
+- Postgres de produção dedicado: `Postgres-8_E2`.
+- Schema aplicado e seed de exemplo rodados automaticamente no primeiro
+  boot (ver `scripts/iniciar-producao.sh` — o seed só roda se a tabela
+  `empresas` estiver vazia, pra não apagar dado real em reinícios
+  futuros).
+- Rota adicionada em `router/rotas.js` (repo `sistema-interno-app`,
+  branch `main`) e roteador redeployado.
+- Testado em produção de verdade (Playwright: login + dashboard + Uso
+  Digital, sem erro).
+
+**Acesse**: https://argus.sistemainterno.app — login `admin` /
+`argus2026`.
+
+Continuam valendo os pontos já documentados como incompletos (IA mock,
+sem storage de foto, sem consentimento LGPD, sem rate limiting) — é
+uma versão pra você ver e testar, não uma versão pronta pra
+colaboradores reais baterem ponto de verdade ainda. Ver `DECISIONS.md`
+pro que falta antes disso.
+
+### Rodando local também
+
+Servidor de dev também está de pé, em paralelo: **http://localhost:4300**
+(mesmo login). Usa o Postgres local (Homebrew), dados de exemplo
+próprios — independente do banco de produção.
 
 ## Como rodar
 
