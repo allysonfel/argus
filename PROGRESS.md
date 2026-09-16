@@ -100,6 +100,10 @@ abaixo carregam com status 200 e sem erro de servidor/console:
   uniforme/crachá/calçado, raio de geolocalização), limiares de alerta
   (atraso, ociosidade, cartão sem assinatura, ajuste pendente),
   percentual de hora extra. Confirmado persistindo direto no Postgres.
+- **Modo claro/escuro**: alternador sol/lua na sidebar (mesmo padrão
+  visual do painel `logoscompany`), escolha salva por navegador
+  (`localStorage`), sem piscar tema errado no carregamento. Testado
+  local e em produção.
 
 ## O que ficou pra depois (nada foi "pulado" por trava técnica — tudo abaixo é escopo cortado conscientemente por tempo, com nota no `DECISIONS.md`)
 
@@ -114,8 +118,6 @@ abaixo carregam com status 200 e sem erro de servidor/console:
   contas.
 - Edição/exclusão de cadastros já criados.
 - Rate limiting / bloqueio de login.
-- Modo escuro (tokens já existem no design system reaproveitado, só não
-  copiei o bloco dark pra cá).
 - Suíte de testes automatizados formal — validei com scripts Playwright
   avulsos durante a sessão, não commitados como suíte do projeto.
 - Papel `GESTOR` existe no schema/tipo mas sem permissão distinta de

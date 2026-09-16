@@ -195,6 +195,27 @@ mudou, não o estado de maturidade do produto.
   pré-calculada (job noturno ou trigger) antes de virar lento; não
   otimizei isso agora porque não há dado real nessa escala pra medir.
 
+## Modo claro/escuro
+
+- Pedido depois de já publicado, pra ficar igual ao alternador do
+  painel `logoscompany` (sol/lua na sidebar). Copiei o mecanismo de lá
+  quase igual: classe `dark` em `document.documentElement` (não
+  `data-theme`, não Context/Provider), `localStorage` por navegador
+  (`argus-theme`), e um `<script>` bloqueante em `layout.tsx` que roda
+  antes da primeira pintura pra aplicar o tema salvo sem piscar claro
+  primeiro.
+- Tive que acrescentar `suppressHydrationWarning` na tag `<html>` — o
+  `logoscompany` não precisou porque lá o layout com o script fica numa
+  árvore separada (`/admin/layout.tsx`, fora do `[locale]`), enquanto o
+  Argus tem um único layout raiz. Sem isso, o React reclamava de
+  hydration mismatch (classe `dark` aparece no DOM antes da hidratação,
+  servidor não sabia disso ao renderizar). Confirmado com Playwright que
+  não sobra warning nenhum no console depois da correção.
+- Aplica no site inteiro (login/checkin incluído), não só no admin —
+  diferente do `logoscompany`, que restringe a `/admin`. Não vi motivo
+  pra restringir aqui, já que não existe "site público" separado no
+  Argus (tudo é painel ou tela de check-in).
+
 ## Conformidade (LGPD / REP-P)
 
 - Arquitetado pensando na Portaria 671/2021: `registros_ponto` é
@@ -224,9 +245,6 @@ mudou, não o estado de maturidade do produto.
   querer errado).
 - Rate limiting / bloqueio de conta após tentativas de login erradas —
   não implementado.
-- Modo escuro — os tokens do design system reaproveitado já têm uma
-  variante dark pronta (`html.dark` no `logoscompany`), só não copiei
-  esse bloco pra cá por tempo; é uma adição rápida se quiser.
 - Exportação CSV em qualquer tela (o `logoscompany` tem isso em
   Militantes) — não pedido no briefing do Argus, não implementei.
 - Testes automatizados formais (Jest/Playwright como suíte do
