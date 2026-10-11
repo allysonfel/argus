@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/cn';
-import { fazerLogout } from '@/app/login/actions';
+import { fazerLogout } from '@/app/(sistema)/login/actions';
 import { ThemeToggle } from './ThemeToggle';
 import {
   IconeVisaoGeral,
@@ -17,13 +17,13 @@ import {
 } from '@/components/ui/icones';
 
 const ABAS = [
-  { href: '/', label: 'Visão Geral', Icone: IconeVisaoGeral },
-  { href: '/ponto', label: 'Ponto & Banco de Horas', Icone: IconePonto },
-  { href: '/mapa-dispositivos', label: 'Mapa de Dispositivos', Icone: IconeMapaPin },
-  { href: '/mapa-ponto', label: 'Mapa do Ponto', Icone: IconeMapa },
-  { href: '/uso-digital', label: 'Uso Digital', Icone: IconeAtividade },
-  { href: '/cadastros/unidades', label: 'Cadastros', Icone: IconePredio },
-  { href: '/configuracoes', label: 'Configurações', Icone: IconeConfig },
+  { href: '/painel', label: 'Visão Geral', Icone: IconeVisaoGeral },
+  { href: '/painel/ponto', label: 'Ponto & Banco de Horas', Icone: IconePonto },
+  { href: '/painel/mapa-dispositivos', label: 'Mapa de Dispositivos', Icone: IconeMapaPin },
+  { href: '/painel/mapa-ponto', label: 'Mapa do Ponto', Icone: IconeMapa },
+  { href: '/painel/uso-digital', label: 'Uso Digital', Icone: IconeAtividade },
+  { href: '/painel/cadastros/unidades', label: 'Cadastros', Icone: IconePredio },
+  { href: '/painel/configuracoes', label: 'Configurações', Icone: IconeConfig },
 ];
 
 function iniciais(nome: string): string {
@@ -35,7 +35,7 @@ export function Sidebar({ nomeUsuario, nomeEmpresa }: { nomeUsuario: string; nom
   const pathname = usePathname();
 
   function ehAtiva(href: string) {
-    if (href === '/') return pathname === '/';
+    if (href === '/painel') return pathname === '/painel';
     return pathname.startsWith(href);
   }
 

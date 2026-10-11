@@ -21,6 +21,6 @@ export async function exigirSessao(): Promise<UsuarioSessao> {
 /** Idem, mas só ADMIN (telas de Configurações/cadastro). */
 export async function exigirAdmin(): Promise<UsuarioSessao> {
   const sessao = await exigirSessao();
-  if (sessao.role !== 'ADMIN') redirect('/');
+  if (sessao.role !== 'ADMIN') redirect('/painel');
   return sessao;
 }

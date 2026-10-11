@@ -1,0 +1,461 @@
+[
+  {
+    "combo": "grid_lost1.5_match0.9_consec0.5",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 1.5,
+      "minimum_matching_threshold": 0.9,
+      "minimum_consecutive_frames_s": 0.5,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 8,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 8,
+    "ground_truth": 6,
+    "erro_absoluto": 2,
+    "erro_percentual": 33.3
+  },
+  {
+    "combo": "grid_lost1.5_match0.9_consec1.0",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 1.5,
+      "minimum_matching_threshold": 0.9,
+      "minimum_consecutive_frames_s": 1.0,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 8,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 8,
+    "ground_truth": 6,
+    "erro_absoluto": 2,
+    "erro_percentual": 33.3
+  },
+  {
+    "combo": "grid_lost2.5_match0.9_consec0.5",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 2.5,
+      "minimum_matching_threshold": 0.9,
+      "minimum_consecutive_frames_s": 0.5,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 8,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 8,
+    "ground_truth": 6,
+    "erro_absoluto": 2,
+    "erro_percentual": 33.3
+  },
+  {
+    "combo": "grid_lost2.5_match0.9_consec1.0",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 2.5,
+      "minimum_matching_threshold": 0.9,
+      "minimum_consecutive_frames_s": 1.0,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 8,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 8,
+    "ground_truth": 6,
+    "erro_absoluto": 2,
+    "erro_percentual": 33.3
+  },
+  {
+    "combo": "grid_lost3.5_match0.9_consec0.5",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 3.5,
+      "minimum_matching_threshold": 0.9,
+      "minimum_consecutive_frames_s": 0.5,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 8,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 8,
+    "ground_truth": 6,
+    "erro_absoluto": 2,
+    "erro_percentual": 33.3
+  },
+  {
+    "combo": "grid_lost3.5_match0.9_consec1.0",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 3.5,
+      "minimum_matching_threshold": 0.9,
+      "minimum_consecutive_frames_s": 1.0,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 8,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 8,
+    "ground_truth": 6,
+    "erro_absoluto": 2,
+    "erro_percentual": 33.3
+  },
+  {
+    "combo": "grid_lost1.5_match0.8_consec0.5",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 1.5,
+      "minimum_matching_threshold": 0.8,
+      "minimum_consecutive_frames_s": 0.5,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 9,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 9,
+    "ground_truth": 6,
+    "erro_absoluto": 3,
+    "erro_percentual": 50.0
+  },
+  {
+    "combo": "grid_lost1.5_match0.8_consec1.0",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 1.5,
+      "minimum_matching_threshold": 0.8,
+      "minimum_consecutive_frames_s": 1.0,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 9,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 9,
+    "ground_truth": 6,
+    "erro_absoluto": 3,
+    "erro_percentual": 50.0
+  },
+  {
+    "combo": "grid_lost1.5_match0.9_consec0.3",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 1.5,
+      "minimum_matching_threshold": 0.9,
+      "minimum_consecutive_frames_s": 0.3,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 9,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 9,
+    "ground_truth": 6,
+    "erro_absoluto": 3,
+    "erro_percentual": 50.0
+  },
+  {
+    "combo": "grid_lost2.5_match0.8_consec0.5",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 2.5,
+      "minimum_matching_threshold": 0.8,
+      "minimum_consecutive_frames_s": 0.5,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 9,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 9,
+    "ground_truth": 6,
+    "erro_absoluto": 3,
+    "erro_percentual": 50.0
+  },
+  {
+    "combo": "grid_lost2.5_match0.8_consec1.0",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 2.5,
+      "minimum_matching_threshold": 0.8,
+      "minimum_consecutive_frames_s": 1.0,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 9,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 9,
+    "ground_truth": 6,
+    "erro_absoluto": 3,
+    "erro_percentual": 50.0
+  },
+  {
+    "combo": "grid_lost2.5_match0.9_consec0.3",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 2.5,
+      "minimum_matching_threshold": 0.9,
+      "minimum_consecutive_frames_s": 0.3,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 9,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 9,
+    "ground_truth": 6,
+    "erro_absoluto": 3,
+    "erro_percentual": 50.0
+  },
+  {
+    "combo": "grid_lost3.5_match0.8_consec0.5",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 3.5,
+      "minimum_matching_threshold": 0.8,
+      "minimum_consecutive_frames_s": 0.5,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 9,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 9,
+    "ground_truth": 6,
+    "erro_absoluto": 3,
+    "erro_percentual": 50.0
+  },
+  {
+    "combo": "grid_lost3.5_match0.8_consec1.0",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 3.5,
+      "minimum_matching_threshold": 0.8,
+      "minimum_consecutive_frames_s": 1.0,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 9,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 9,
+    "ground_truth": 6,
+    "erro_absoluto": 3,
+    "erro_percentual": 50.0
+  },
+  {
+    "combo": "grid_lost3.5_match0.9_consec0.3",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 3.5,
+      "minimum_matching_threshold": 0.9,
+      "minimum_consecutive_frames_s": 0.3,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 9,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 9,
+    "ground_truth": 6,
+    "erro_absoluto": 3,
+    "erro_percentual": 50.0
+  },
+  {
+    "combo": "grid_lost1.5_match0.8_consec0.3",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 1.5,
+      "minimum_matching_threshold": 0.8,
+      "minimum_consecutive_frames_s": 0.3,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 11,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 11,
+    "ground_truth": 6,
+    "erro_absoluto": 5,
+    "erro_percentual": 83.3
+  },
+  {
+    "combo": "grid_lost2.5_match0.8_consec0.3",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 2.5,
+      "minimum_matching_threshold": 0.8,
+      "minimum_consecutive_frames_s": 0.3,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 11,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 11,
+    "ground_truth": 6,
+    "erro_absoluto": 5,
+    "erro_percentual": 83.3
+  },
+  {
+    "combo": "grid_lost3.5_match0.8_consec0.3",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 3.5,
+      "minimum_matching_threshold": 0.8,
+      "minimum_consecutive_frames_s": 0.3,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 11,
+    "tracks_fragmentos_menos_2s": 0,
+    "visitantes_unicos_estimado": 11,
+    "ground_truth": 6,
+    "erro_absoluto": 5,
+    "erro_percentual": 83.3
+  },
+  {
+    "combo": "grid_lost3.5_match0.7_consec1.0",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 3.5,
+      "minimum_matching_threshold": 0.7,
+      "minimum_consecutive_frames_s": 1.0,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 12,
+    "tracks_fragmentos_menos_2s": 2,
+    "visitantes_unicos_estimado": 11,
+    "ground_truth": 6,
+    "erro_absoluto": 5,
+    "erro_percentual": 83.3
+  },
+  {
+    "combo": "grid_lost1.5_match0.7_consec1.0",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 1.5,
+      "minimum_matching_threshold": 0.7,
+      "minimum_consecutive_frames_s": 1.0,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 12,
+    "tracks_fragmentos_menos_2s": 1,
+    "visitantes_unicos_estimado": 12,
+    "ground_truth": 6,
+    "erro_absoluto": 6,
+    "erro_percentual": 100.0
+  },
+  {
+    "combo": "grid_lost2.5_match0.7_consec1.0",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 2.5,
+      "minimum_matching_threshold": 0.7,
+      "minimum_consecutive_frames_s": 1.0,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 12,
+    "tracks_fragmentos_menos_2s": 1,
+    "visitantes_unicos_estimado": 12,
+    "ground_truth": 6,
+    "erro_absoluto": 6,
+    "erro_percentual": 100.0
+  },
+  {
+    "combo": "grid_lost3.5_match0.7_consec0.5",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 3.5,
+      "minimum_matching_threshold": 0.7,
+      "minimum_consecutive_frames_s": 0.5,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 14,
+    "tracks_fragmentos_menos_2s": 2,
+    "visitantes_unicos_estimado": 12,
+    "ground_truth": 6,
+    "erro_absoluto": 6,
+    "erro_percentual": 100.0
+  },
+  {
+    "combo": "grid_lost1.5_match0.7_consec0.5",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 1.5,
+      "minimum_matching_threshold": 0.7,
+      "minimum_consecutive_frames_s": 0.5,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 14,
+    "tracks_fragmentos_menos_2s": 1,
+    "visitantes_unicos_estimado": 13,
+    "ground_truth": 6,
+    "erro_absoluto": 7,
+    "erro_percentual": 116.7
+  },
+  {
+    "combo": "grid_lost2.5_match0.7_consec0.5",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 2.5,
+      "minimum_matching_threshold": 0.7,
+      "minimum_consecutive_frames_s": 0.5,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 14,
+    "tracks_fragmentos_menos_2s": 1,
+    "visitantes_unicos_estimado": 13,
+    "ground_truth": 6,
+    "erro_absoluto": 7,
+    "erro_percentual": 116.7
+  },
+  {
+    "combo": "grid_lost3.5_match0.7_consec0.3",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 3.5,
+      "minimum_matching_threshold": 0.7,
+      "minimum_consecutive_frames_s": 0.3,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 17,
+    "tracks_fragmentos_menos_2s": 4,
+    "visitantes_unicos_estimado": 14,
+    "ground_truth": 6,
+    "erro_absoluto": 8,
+    "erro_percentual": 133.3
+  },
+  {
+    "combo": "grid_lost1.5_match0.7_consec0.3",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 1.5,
+      "minimum_matching_threshold": 0.7,
+      "minimum_consecutive_frames_s": 0.3,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 18,
+    "tracks_fragmentos_menos_2s": 4,
+    "visitantes_unicos_estimado": 15,
+    "ground_truth": 6,
+    "erro_absoluto": 9,
+    "erro_percentual": 150.0
+  },
+  {
+    "combo": "grid_lost2.5_match0.7_consec0.3",
+    "tracker_tipo": "bytetrack",
+    "params": {
+      "lost_track_buffer_s": 2.5,
+      "minimum_matching_threshold": 0.7,
+      "minimum_consecutive_frames_s": 0.3,
+      "track_activation_threshold": 0.25,
+      "det_conf_threshold": 0.4
+    },
+    "total_ids_criados": 18,
+    "tracks_fragmentos_menos_2s": 4,
+    "visitantes_unicos_estimado": 15,
+    "ground_truth": 6,
+    "erro_absoluto": 9,
+    "erro_percentual": 150.0
+  }
+]

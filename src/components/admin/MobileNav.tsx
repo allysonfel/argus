@@ -9,17 +9,17 @@ import { IconeVisaoGeral, IconePonto, IconeMapaPin, IconeAtividade, IconeConfig 
 // Mapa do Ponto e Cadastros ficam a um toque de distância dentro de
 // Configurações/Mapa de Dispositivos, não repetidos aqui por espaço.
 const ABAS = [
-  { href: '/', label: 'Visão Geral', Icone: IconeVisaoGeral },
-  { href: '/ponto', label: 'Ponto', Icone: IconePonto },
-  { href: '/mapa-dispositivos', label: 'Mapa', Icone: IconeMapaPin },
-  { href: '/uso-digital', label: 'Uso Digital', Icone: IconeAtividade },
-  { href: '/configuracoes', label: 'Config', Icone: IconeConfig },
+  { href: '/painel', label: 'Visão Geral', Icone: IconeVisaoGeral },
+  { href: '/painel/ponto', label: 'Ponto', Icone: IconePonto },
+  { href: '/painel/mapa-dispositivos', label: 'Mapa', Icone: IconeMapaPin },
+  { href: '/painel/uso-digital', label: 'Uso Digital', Icone: IconeAtividade },
+  { href: '/painel/configuracoes', label: 'Config', Icone: IconeConfig },
 ];
 
 export function MobileNav() {
   const pathname = usePathname();
   function ehAtiva(href: string) {
-    return href === '/' ? pathname === '/' : pathname.startsWith(href);
+    return href === '/painel' ? pathname === '/painel' : pathname.startsWith(href);
   }
 
   return (

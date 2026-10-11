@@ -1,0 +1,65 @@
+{
+  "fonte": "teste_ground_truth_v2.mp4",
+  "frames_processados": 500,
+  "fps_informado_pelo_arquivo": 20.0,
+  "fps_processamento_real": 28.46,
+  "obs_fps": "processamento acompanha o fps do arquivo, sem atraso relevante.",
+  "tracker_tipo": "bytetrack",
+  "total_ids_criados": 6,
+  "tracks_com_menos_de_1s": 0,
+  "tracks_com_menos_de_2s": 0,
+  "pct_tracks_curtos_1s": 0.0,
+  "pct_tracks_curtos_2s": 0.0,
+  "histograma_duracao": {
+    "< 0.5s": 0,
+    "0.5-1s": 0,
+    "1-2s": 0,
+    "2-5s": 1,
+    "5-10s": 2,
+    "> 10s": 3
+  },
+  "duracoes_por_track": [
+    {
+      "track_id": 1,
+      "frame_inicio": 45,
+      "frame_fim": 315,
+      "duracao_frames": 271,
+      "duracao_s": 13.55
+    },
+    {
+      "track_id": 2,
+      "frame_inicio": 46,
+      "frame_fim": 209,
+      "duracao_frames": 164,
+      "duracao_s": 8.2
+    },
+    {
+      "track_id": 3,
+      "frame_inicio": 73,
+      "frame_fim": 374,
+      "duracao_frames": 302,
+      "duracao_s": 15.1
+    },
+    {
+      "track_id": 4,
+      "frame_inicio": 102,
+      "frame_fim": 389,
+      "duracao_frames": 288,
+      "duracao_s": 14.4
+    },
+    {
+      "track_id": 5,
+      "frame_inicio": 227,
+      "frame_fim": 293,
+      "duracao_frames": 67,
+      "duracao_s": 3.35
+    },
+    {
+      "track_id": 6,
+      "frame_inicio": 230,
+      "frame_fim": 374,
+      "duracao_frames": 145,
+      "duracao_s": 7.25
+    }
+  ]
+}

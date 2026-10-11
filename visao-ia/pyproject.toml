@@ -1,0 +1,28 @@
+[project]
+name = "argus-visao"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "allysumotion", email = "allysumotion@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.141.1",
+    "insightface>=2.0",
+    "lap>=0.5.13",
+    "mediapipe>=1.0.1",
+    "onnxruntime>=1.30.0",
+    "opencv-python>=5.0.0.93",
+    "python-multipart>=0.0.32",
+    "supervision>=0.30.5",
+    "ultralytics>=8.4.160",
+    "uvicorn>=0.53.0",
+]
+
+[project.scripts]
+argus-visao = "argus_visao:main"
+
+[build-system]
+requires = ["uv_build>=0.12.18,<0.13.0"]
+build-backend = "uv_build"

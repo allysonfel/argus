@@ -5,3 +5,12 @@ node_modules
 *.log
 .DS_Store
 tsconfig.tsbuildinfo
+
+# visao-ia (motor Python)
+visao-ia/.venv/
+visao-ia/uploads/
+visao-ia/debug_*.mp4
+visao-ia/**/__pycache__/
+*.pt
+*.onnx
+*.pth
