@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/cn';
-import { IconeVisaoGeral, IconePonto, IconeMapaPin, IconeAtividade, IconeConfig } from '@/components/ui/icones';
+import { IconeVisaoGeral, IconeCamera, IconePonto, IconeMapaPin, IconeAtividade, IconeConfig } from '@/components/ui/icones';
 
 // Versão enxuta da nav (5 ícones, sem rótulo) pro rodapé no celular —
 // Mapa do Ponto e Cadastros ficam a um toque de distância dentro de
 // Configurações/Mapa de Dispositivos, não repetidos aqui por espaço.
 const ABAS = [
   { href: '/painel', label: 'Visão Geral', Icone: IconeVisaoGeral },
+  { href: '/painel/ao-vivo', label: 'Ao vivo', Icone: IconeCamera },
   { href: '/painel/ponto', label: 'Ponto', Icone: IconePonto },
   { href: '/painel/mapa-dispositivos', label: 'Mapa', Icone: IconeMapaPin },
   { href: '/painel/uso-digital', label: 'Uso Digital', Icone: IconeAtividade },

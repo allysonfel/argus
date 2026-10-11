@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Hello from argus-visao!")
+"""Argus Visão: motor de visão computacional do Argus."""

@@ -1,0 +1,25 @@
+{
+  "_comentario": "Câmeras do motor. 'fonte' aceita arquivo (relativo a visao-ia/), índice de webcam ('0') ou RTSP Intelbras: rtsp://USUARIO:SENHA@IP:554/cam/realmonitor?channel=N&subtype=1. Linhas e zonas em coordenadas normalizadas 0-1.",
+  "cameras": [
+    {
+      "id": "dev-cctv",
+      "nome": "DEV · CCTV de loja (YouTube, só teste interno)",
+      "fonte": "uploads/cctv-youtube-dev.mp4",
+      "fps_analise": 4,
+      "preset": "default",
+      "linhas": [
+        { "id": "passagem", "nome": "Passagem do corredor", "inicio": [0.45, 0.72], "fim": [1.0, 0.72] }
+      ],
+      "zonas": [
+        { "id": "corredor", "nome": "Corredor central", "poligono": [[0.35, 0.55], [0.75, 0.45], [1.0, 0.75], [1.0, 1.0], [0.45, 1.0]] }
+      ]
+    },
+    {
+      "id": "teste-sintetico",
+      "nome": "Teste sintético (6 pessoas)",
+      "fonte": "videos/teste-sintetico-6-pessoas.mp4",
+      "fps_analise": 4,
+      "preset": "default"
+    }
+  ]
+}

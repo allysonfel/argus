@@ -1,0 +1,7 @@
+{
+  "modelo": "rfdetr-nano",
+  "dispositivo": "auto",
+  "fp16_em_cuda": true,
+  "previa_largura_max": 960,
+  "previa_qualidade_jpeg": 75
+}

@@ -14,3 +14,8 @@ visao-ia/**/__pycache__/
 *.pt
 *.onnx
 *.pth
+visao-ia/_legado/
+visao-ia/.cache_deteccoes/
+visao-ia/debug/
+visao-ia/videos/*.mp4
+!visao-ia/videos/teste-sintetico-6-pessoas.mp4
