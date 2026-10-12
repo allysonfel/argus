@@ -23,8 +23,11 @@ import cv2
 import numpy as np
 
 # RTSP via TCP (UDP perde pacote fácil em rede de shopping/VPN) e timeout
-# de leitura de 5 s pra detectar câmera caída rápido.
-os.environ.setdefault("OPENCV_FFMPEG_CAPTURE_OPTIONS", "rtsp_transport;tcp|stimeout;5000000")
+# de leitura de 5 s pra detectar câmera caída rápido. Decodificador com 1
+# thread: o padrão é uma por CPU da máquina, o que com várias câmeras num
+# servidor de muitos núcleos (Railway) estoura o limite de threads.
+os.environ.setdefault("OPENCV_FFMPEG_CAPTURE_OPTIONS", "rtsp_transport;tcp|stimeout;5000000|threads;1")
+cv2.setNumThreads(1)
 
 
 @dataclass
@@ -95,7 +98,7 @@ class FonteVideo:
 
     def _abrir(self) -> cv2.VideoCapture:
         alvo: str | int = int(self.fonte) if self.fonte.isdigit() else self.fonte
-        cap = cv2.VideoCapture(alvo, cv2.CAP_FFMPEG) if isinstance(alvo, str) else cv2.VideoCapture(alvo)
+        cap = cv2.VideoCapture(alvo, cv2.CAP_FFMPEG, [cv2.CAP_PROP_N_THREADS, 1]) if isinstance(alvo, str) else cv2.VideoCapture(alvo)
         if not cap.isOpened():
             raise RuntimeError(f"não foi possível abrir a fonte de vídeo: {self._fonte_segura()}")
         fps = cap.get(cv2.CAP_PROP_FPS)

@@ -25,4 +25,6 @@ RUN python -c "import rfdetr; rfdetr.RFDETRNano(device='cpu')"
 # código roda de /app/src (e não da cópia instalada em site-packages)
 ENV PYTHONPATH=/app/src
 ENV PORT=8500
+# Threads do torch/OpenMP: o contêiner enxerga todos os núcleos do host
+ENV OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
 CMD ["sh", "-c", "uvicorn argus_visao.api:app --host 0.0.0.0 --port ${PORT}"]
