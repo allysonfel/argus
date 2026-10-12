@@ -18,8 +18,8 @@ export default function CamerasPage() {
   const online = cams.filter((c) => c.estado === 'online');
   const problemas = cams.filter((c) => c.estado !== 'online');
   const fpsMedio = online.reduce((s, c) => s + c.fps, 0) / Math.max(1, online.length);
-  // Problemas primeiro; câmeras de área restrita no topo (prioridade alta)
-  const ordenadas = [...problemas.sort((a, b) => Number(b.restrita) - Number(a.restrita)), ...online];
+  // Problemas primeiro
+  const ordenadas = [...problemas, ...online];
 
   return (
     <div>
@@ -46,10 +46,7 @@ export default function CamerasPage() {
           linhas={ordenadas.map((c) => [
             <span key={c.id}>
               <span className="font-medium">{c.id}</span>
-              <span className="block text-xs text-on-surface-variant">
-                {c.nome}
-                {c.restrita && ' · área restrita'}
-              </span>
+              <span className="block text-xs text-on-surface-variant">{c.nome}</span>
             </span>,
             c.andar === 'T' ? 'Térreo' : 'Piso 1',
             <Badge key={`b${c.id}`} variant={VARIANTE[c.estado]}>
@@ -75,7 +72,6 @@ export default function CamerasPage() {
             <li>Escura ou tapada: brilho muito baixo ou imagem uniforme.</li>
             <li>Desfocada: nitidez abaixo do normal daquela câmera.</li>
             <li>Desviada: a imagem não bate mais com a de referência (a calibração com a planta deixa de valer).</li>
-            <li>Câmera de área restrita com qualquer um desses problemas gera alerta de prioridade alta.</li>
           </ul>
         </Secao>
       </div>

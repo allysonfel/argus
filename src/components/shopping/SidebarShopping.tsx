@@ -15,9 +15,7 @@ import {
   IconeZonaMorta,
   IconeComparar,
   IconeRotas,
-  IconeEscudo,
   IconeCrianca,
-  IconeLoja,
   IconeAtividade,
   IconeSair,
 } from '@/components/ui/icones';
@@ -43,14 +41,12 @@ export const GRUPOS = [
   {
     titulo: 'Segurança',
     abas: [
-      { href: '/shopping/areas-restritas', label: 'Áreas restritas 24h', Icone: IconeEscudo },
       { href: '/shopping/crianca-perdida', label: 'Busca de criança perdida', Icone: IconeCrianca },
     ],
   },
   {
-    titulo: 'Lojistas e sistema',
+    titulo: 'Sistema',
     abas: [
-      { href: '/shopping/lojista', label: 'Portal do lojista', Icone: IconeLoja },
       { href: '/shopping/cameras', label: 'Câmeras e saúde', Icone: IconeAtividade },
     ],
   },
@@ -76,8 +72,10 @@ function Navegacao({ aoNavegar }: { aoNavegar?: () => void }) {
                   href={href}
                   onClick={aoNavegar}
                   className={cn(
-                    'flex items-center gap-3 rounded-sm px-3 py-2 text-sm font-medium transition-colors',
-                    ativa ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
+                    'relative flex items-center gap-3 rounded-sm px-3 py-2 text-sm font-medium transition-colors',
+                    ativa
+                      ? 'bg-primary-container font-semibold text-on-primary-container before:absolute before:inset-y-2 before:-left-3 before:w-[3px] before:rounded-r-full before:bg-primary'
+                      : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
                   )}
                 >
                   <Icone strokeWidth={ativa ? 2 : 1.75} className="shrink-0" />
@@ -96,8 +94,13 @@ function Cabecalho() {
   return (
     <div className="px-6 pb-5 pt-6">
       <LogoArgus className="h-5 text-on-surface" />
-      <p className="mt-3 text-sm font-semibold leading-tight text-on-surface">Shopping Caruaru</p>
-      <p className="text-xs leading-tight text-on-surface-variant">Caruaru · PE</p>
+      <div className="mt-4 flex items-center gap-2.5 rounded-sm border border-outline-variant bg-surface-dim px-2.5 py-2">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-primary-container text-[11px] font-bold text-on-primary-container">SC</span>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold leading-tight text-on-surface">Shopping Caruaru</p>
+          <p className="text-xs leading-tight text-on-surface-variant">Caruaru · PE</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -132,7 +135,7 @@ export function MenuMovelShopping({ nomeUsuario }: { nomeUsuario: string }) {
   const [aberto, setAberto] = useState(false);
   return (
     <div className="lg:hidden print:hidden">
-      <div className="sticky top-0 z-40 flex items-center justify-between border-b border-outline-variant bg-surface px-4 py-3">
+      <div className="sticky top-0 z-40 flex items-center justify-between border-b border-outline-variant bg-surface/80 px-4 py-3 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <LogoArgus className="h-4 text-on-surface" />
           <span className="text-sm font-semibold text-on-surface">Shopping Caruaru</span>

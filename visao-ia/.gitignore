@@ -6,3 +6,4 @@ saida_*.mp4
 *.pt
 models/*.tflite
 models/*.task
+models/osnet/

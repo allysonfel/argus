@@ -8,14 +8,28 @@ Endpoints:
     GET  /api/saude                     motor no ar + dispositivo/modelo
     GET  /api/cameras                   status de todas as câmeras
     GET  /api/cameras/{id}              status + estatísticas de uma câmera
+    GET  /api/cameras/{id}/quadro.jpg   último quadro (miniatura, ?largura=480)
     POST /api/cameras/{id}/zerar        zera as contagens da câmera
     WS   /ws/cameras/{id}               ao vivo: quadros + metadados
+    WS   /ws/mosaico                    miniaturas de várias câmeras numa conexão só
 
 Protocolo do WebSocket (servidor -> painel):
     - mensagem BINÁRIA: 8 bytes (float64 little-endian, timestamp da
       captura) + JPEG do quadro ORIGINAL, sem desenho, no ritmo da fonte.
     - mensagem TEXTO: JSON {"tipo": "meta", "ts", "tracks", "stats",
       "debug"}, no ritmo da análise. O painel casa os dois pelo `ts`.
+
+Protocolo do mosaico:
+    - painel -> servidor (TEXTO, a qualquer momento): JSON {"cameras":
+      [ids visíveis], "largura": 400, "fps": 4}. Troca a assinatura sem
+      reconectar (ex.: ao mudar de página do mosaico).
+    - servidor -> painel (BINÁRIO): 1 byte (tamanho N do id) + id em
+      UTF-8 (N bytes) + 8 bytes (float64 LE, timestamp) + JPEG reduzido.
+      Só manda quando a câmera tem quadro novo.
+
+Uma conexão só para o mosaico inteiro: o navegador limita conexões
+HTTP por servidor (~6), então um stream por câmera travaria a partir
+da sétima.
 """
 
 from __future__ import annotations
@@ -26,7 +40,7 @@ import struct
 from contextlib import asynccontextmanager
 
 import cv2
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Response, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from .analisador import AnalisadorCamera
@@ -35,6 +49,9 @@ from .inferencia import DetectorPessoas
 
 # Teto de quadros/s enviados pra exibição (vídeo de 60 fps não precisa ir inteiro).
 PREVIA_FPS_MAX = 25.0
+# Limites do mosaico (miniaturas): o painel pede dentro destas faixas.
+MOSAICO_FPS_MAX = 8.0
+MOSAICO_LARGURA_MAX = 640
 
 motor_cfg = MotorConfig.carregar()
 analisadores: dict[str, AnalisadorCamera] = {}
@@ -45,10 +62,15 @@ detector: DetectorPessoas | None = None
 async def lifespan(_: FastAPI):
     global detector
     detector = DetectorPessoas(motor_cfg)
+    extrator = None
+    if motor_cfg.reid == "osnet":
+        from .reid import ExtratorReid
+
+        extrator = ExtratorReid()
     for cam in carregar_cameras():
         if not cam.ativa:
             continue
-        a = AnalisadorCamera(cam, detector)
+        a = AnalisadorCamera(cam, detector, motor_cfg.fps_analise_sem_espectador, extrator_reid=extrator)
         a.iniciar()
         analisadores[cam.id] = a
         print(f"[api] câmera '{cam.id}' iniciada ({cam.fps_analise} fps de análise)")
@@ -88,6 +110,19 @@ def listar_cameras() -> list[dict]:
 @app.get("/api/cameras/{camera_id}")
 def status_camera(camera_id: str) -> dict:
     return _analisador(camera_id).status()
+
+
+@app.get("/api/cameras/{camera_id}/quadro.jpg")
+def quadro_camera(camera_id: str, largura: int = 480) -> Response:
+    """Miniatura do último quadro, pro mosaico de câmeras do painel (sem
+    abrir um WebSocket por câmera)."""
+    quadro = _analisador(camera_id).fonte.ultimo()
+    if quadro is None:
+        raise HTTPException(status_code=404, detail="sem quadro ainda")
+    jpeg = _codificar_miniatura(quadro.imagem, max(64, largura))
+    if jpeg is None:
+        raise HTTPException(status_code=500, detail="falha ao codificar o quadro")
+    return Response(content=jpeg, media_type="image/jpeg", headers={"Cache-Control": "no-store"})
 
 
 @app.post("/api/cameras/{camera_id}/zerar")
@@ -152,3 +187,55 @@ async def ao_vivo(ws: WebSocket, camera_id: str) -> None:
         a.assinantes.cancelar(fila)
         for t in tarefas:
             t.cancel()
+
+
+def _codificar_miniatura(imagem, largura: int, qualidade: int = 70) -> bytes | None:
+    altura, largura_orig = imagem.shape[:2]
+    if largura < largura_orig:
+        imagem = cv2.resize(imagem, (largura, round(altura * largura / largura_orig)), interpolation=cv2.INTER_AREA)
+    ok, buf = cv2.imencode(".jpg", imagem, [cv2.IMWRITE_JPEG_QUALITY, qualidade])
+    return buf.tobytes() if ok else None
+
+
+def _quadros_do_mosaico(pedidos: list[tuple[str, AnalisadorCamera]], ultimos: dict[str, int], largura: int) -> list[bytes]:
+    """Codifica (fora do loop asyncio) o quadro novo de cada câmera pedida."""
+    mensagens = []
+    for camera_id, a in pedidos:
+        quadro = a.fonte.ultimo()
+        if quadro is None or ultimos.get(camera_id) == quadro.seq:
+            continue
+        ultimos[camera_id] = quadro.seq
+        jpeg = _codificar_miniatura(quadro.imagem, largura)
+        if jpeg:
+            id_bytes = camera_id.encode("utf-8")
+            mensagens.append(bytes([len(id_bytes)]) + id_bytes + struct.pack("<d", quadro.ts) + jpeg)
+    return mensagens
+
+
+@app.websocket("/ws/mosaico")
+async def mosaico(ws: WebSocket) -> None:
+    await ws.accept()
+    pedido = {"cameras": [], "largura": 400, "fps": 4.0}
+    ultimos: dict[str, int] = {}
+
+    async def receber() -> None:
+        while True:
+            msg = await ws.receive_json()
+            ids = [c for c in msg.get("cameras", []) if isinstance(c, str) and c in analisadores]
+            pedido["cameras"] = ids[:64]
+            pedido["largura"] = max(160, min(int(msg.get("largura", 400)), MOSAICO_LARGURA_MAX))
+            pedido["fps"] = max(0.5, min(float(msg.get("fps", 4)), MOSAICO_FPS_MAX))
+
+    tarefa = asyncio.create_task(receber())
+    try:
+        while not tarefa.done():
+            inicio = asyncio.get_running_loop().time()
+            pedidos = [(c, analisadores[c]) for c in pedido["cameras"]]
+            for dados in await asyncio.to_thread(_quadros_do_mosaico, pedidos, ultimos, pedido["largura"]):
+                await ws.send_bytes(dados)
+            gasto = asyncio.get_running_loop().time() - inicio
+            await asyncio.sleep(max(0.02, 1.0 / pedido["fps"] - gasto))
+    except (WebSocketDisconnect, RuntimeError):
+        pass
+    finally:
+        tarefa.cancel()

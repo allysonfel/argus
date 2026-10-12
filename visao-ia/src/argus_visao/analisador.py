@@ -37,6 +37,10 @@ class Assinantes:
         with self._lock:
             self._filas = {(l, f) for l, f in self._filas if f is not fila}
 
+    def __len__(self) -> int:
+        with self._lock:
+            return len(self._filas)
+
     def publicar(self, msg: dict) -> None:
         with self._lock:
             alvos = list(self._filas)
@@ -51,12 +55,13 @@ def _colocar_sem_bloquear(fila: asyncio.Queue, msg: dict) -> None:
 
 
 class AnalisadorCamera:
-    def __init__(self, camera: CameraConfig, detector: DetectorPessoas) -> None:
+    def __init__(self, camera: CameraConfig, detector: DetectorPessoas, fps_sem_espectador: float | None = None, extrator_reid=None) -> None:
         self.camera = camera
         self.detector = detector
+        self.fps_sem_espectador = fps_sem_espectador
         self.cfg = TrackerConfig.carregar(camera.preset)
         self.fonte = FonteVideo(camera.resolver_fonte(), camera.eh_arquivo)
-        self.regras = RegrasCamera(camera, self.cfg, camera.fps_analise)
+        self.regras = RegrasCamera(camera, self.cfg, camera.fps_analise, extrator=extrator_reid)
         self.assinantes = Assinantes()
         self._lock = threading.Lock()
         self._rodando = False
@@ -84,7 +89,6 @@ class AnalisadorCamera:
             self.regras.zerar()
 
     def _loop(self) -> None:
-        intervalo = 1.0 / self.camera.fps_analise
         seq = 0
         ciclo = 0
         t_anterior: float | None = None
@@ -104,15 +108,20 @@ class AnalisadorCamera:
                     if self.camera.zerar_ao_reiniciar_video:
                         self.regras.zerar()
                     else:
-                        self.regras.tracker.reset()
+                        self.regras.reiniciar_tracker()
 
             altura, largura = quadro.imagem.shape[:2]
             t0 = time.perf_counter()
-            deteccoes = self.detector.detectar(quadro.imagem, self.cfg.det_conf_threshold)
+            # Com alguém assistindo, a câmera fura a fila do detector compartilhado
+            # e ganha Re-ID (caro em CPU, então só onde alguém está olhando).
+            assistida = len(self.assinantes) > 0
+            deteccoes = self.detector.detectar(quadro.imagem, self.cfg.det_conf_threshold, prioritario=assistida)
             self.inferencia_ms = (time.perf_counter() - t0) * 1000
             with self._lock:
-                rastreadas = self.regras.atualizar(deteccoes, quadro.ts, largura, altura)
+                rastreadas = self.regras.atualizar(deteccoes, quadro.ts, largura, altura, imagem=quadro.imagem if assistida else None)
                 stats = self.regras.estatisticas()
+                # Caminho de cada pessoa só vai pra quem está assistindo.
+                caminhos = self.regras.caminhos(rastreadas.tracker_id.tolist()) if len(self.assinantes) else {}
 
             agora = time.time()
             if t_anterior is not None:
@@ -129,6 +138,8 @@ class AnalisadorCamera:
                         "id": int(tid),
                         "b": [round(float(x1) / largura, 4), round(float(y1) / altura, 4), round(float(x2) / largura, 4), round(float(y2) / altura, 4)],
                         "c": round(float(conf), 2) if conf is not None else None,
+                        # Caminho (pés, 0-1) desde que a pessoa entrou na imagem.
+                        "p": caminhos.get(int(tid), []),
                     }
                 )
 
@@ -141,7 +152,7 @@ class AnalisadorCamera:
                 "stats": stats,
                 "debug": {
                     "fps_analise": round(self.fps_analise_real, 1),
-                    "fps_analise_alvo": self.camera.fps_analise,
+                    "fps_analise_alvo": self.fps_alvo,
                     "inferencia_ms": round(self.inferencia_ms),
                     "latencia_ms": round((agora - quadro.ts) * 1000),
                     "dispositivo": self.detector.dispositivo,
@@ -152,12 +163,20 @@ class AnalisadorCamera:
             self.assinantes.publicar(msg)
 
             # Segura no ritmo de análise configurado (sem acumular atraso).
-            proximo += intervalo
+            proximo += 1.0 / self.fps_alvo
             espera = proximo - time.monotonic()
             if espera > 0:
                 time.sleep(espera)
             else:
                 proximo = time.monotonic()
+
+    @property
+    def fps_alvo(self) -> float:
+        """fps de análise cheio com alguém assistindo no painel; senão,
+        limitado por `fps_analise_sem_espectador` (motor.json)."""
+        if self.fps_sem_espectador and len(self.assinantes) == 0:
+            return min(self.camera.fps_analise, self.fps_sem_espectador)
+        return self.camera.fps_analise
 
     def status(self) -> dict:
         ultimo_ts = self.fonte.ultimo_ts
@@ -167,6 +186,10 @@ class AnalisadorCamera:
         return {
             "id": self.camera.id,
             "nome": self.camera.nome,
+            "andar": self.camera.andar,
+            "corredor": self.camera.corredor,
+            "area_negocio": self.camera.area_negocio,
+            "credito": self.camera.credito,
             "online": self.fonte.online,
             "erro": self.fonte.erro,
             "fonte": self.fonte._fonte_segura(),
@@ -174,7 +197,7 @@ class AnalisadorCamera:
             "fps_fonte": round(self.fonte.fps_fonte, 1),
             "fps_captura": self.fonte.fps_medido,
             "fps_analise": round(self.fps_analise_real, 1),
-            "fps_analise_alvo": self.camera.fps_analise,
+            "fps_analise_alvo": self.fps_alvo,
             "inferencia_ms": round(self.inferencia_ms),
             "sem_quadros_ha_s": sem_quadros_s,
             "resolucao": [self.fonte.largura, self.fonte.altura],

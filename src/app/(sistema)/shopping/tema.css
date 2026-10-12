@@ -1,0 +1,113 @@
+/*
+ * Tema do módulo Shopping: refinamento visual (referência: DESIGN.md do
+ * projeto Genesis) mantendo a identidade Argus — mesmas cores, mesma
+ * estrutura de telas. Tudo fica dentro de .tema-shopping (layout do
+ * /shopping), então o painel de ponto e o site não mudam.
+ *
+ * O que muda: bordas mais leves, cantos um pouco mais redondos (6px em
+ * controles, 12px em cartões), títulos com fonte geométrica e letras mais
+ * juntas, elevação só em hover de elementos clicáveis, anel de foco suave.
+ */
+
+.tema-shopping {
+  --radius-sm: 6px; /* botões, campos, itens de menu (utilitário rounded-sm) */
+  --raio-cartao: 12px;
+  --color-outline-variant: #e4e4e7; /* bordas recessivas (era #b9b9b9) */
+  --sombra-hover: 0 8px 30px rgb(15 23 42 / 0.08);
+  --anel-foco: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html.dark .tema-shopping {
+  --color-outline-variant: #303236;
+  --sombra-hover: 0 8px 30px rgb(0 0 0 / 0.4);
+}
+
+/* ---------- tipografia ---------- */
+
+.tema-shopping :is(h1, h2, h3) {
+  font-family: var(--font-titulo), var(--font-sans);
+  letter-spacing: -0.01em;
+  /* a Plus Jakarta tem espaço entre palavras estreito; com letras juntas, as palavras emendavam */
+  word-spacing: 0.06em;
+}
+
+.tema-shopping h1 {
+  letter-spacing: -0.02em;
+}
+
+/* Números de destaque (StatCard e afins) na fonte de títulos */
+.tema-shopping :is(.text-2xl, .text-3xl).tabular-nums {
+  font-family: var(--font-titulo), var(--font-sans);
+  letter-spacing: -0.02em;
+}
+
+/* ---------- superfícies ---------- */
+
+/* Cartões e painéis (utilitário `rounded`, valor fixo no Tailwind) */
+.tema-shopping .rounded {
+  border-radius: var(--raio-cartao);
+}
+
+/* ---------- botões ---------- */
+
+.tema-shopping main :is(button, a).rounded-sm {
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.tema-shopping main :is(button, a).rounded-sm:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.tema-shopping main :is(button, a).bg-primary:not(:disabled):hover {
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+
+.tema-shopping main :is(button, a).rounded-sm:focus-visible {
+  outline: none;
+  box-shadow: var(--anel-foco);
+}
+
+/* ---------- campos ---------- */
+
+.tema-shopping :is(input:not([type='checkbox'], [type='radio']), select, textarea) {
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.tema-shopping :is(input:not([type='checkbox'], [type='radio']), select, textarea):focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--anel-foco);
+}
+
+.tema-shopping input:is([type='checkbox'], [type='radio']) {
+  accent-color: var(--color-primary);
+}
+
+/* ---------- elementos clicáveis com cara de cartão ---------- */
+
+.tema-shopping .cartao-clicavel {
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.tema-shopping .cartao-clicavel:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-hover);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tema-shopping main :is(button, a).rounded-sm:hover,
+  .tema-shopping .cartao-clicavel:hover {
+    transform: none;
+  }
+}

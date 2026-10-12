@@ -3,5 +3,7 @@
   "dispositivo": "auto",
   "fp16_em_cuda": true,
   "previa_largura_max": 960,
-  "previa_qualidade_jpeg": 75
+  "previa_qualidade_jpeg": 75,
+  "fps_analise_sem_espectador": 0.3,
+  "reid": "osnet"
 }

@@ -1,23 +1,904 @@
 {
-  "_comentario": "Câmeras do motor. 'fonte' aceita arquivo (relativo a visao-ia/), índice de webcam ('0') ou RTSP Intelbras: rtsp://USUARIO:SENHA@IP:554/cam/realmonitor?channel=N&subtype=1. Linhas e zonas em coordenadas normalizadas 0-1.",
+  "_comentario": "Câmeras do motor. 'fonte' aceita arquivo (relativo a visao-ia/), índice de webcam ('0') ou RTSP Intelbras: rtsp://USUARIO:SENHA@IP:554/cam/realmonitor?channel=N&subtype=1. Linhas e zonas em coordenadas normalizadas 0-1. As câmeras 'demo-*' usam vídeos reais de shopping (Pexels e CAVIAR) enquanto não temos as câmeras do Shopping Caruaru: gere os arquivos com 'uv run preparar_demo.py'.",
   "cameras": [
+    {
+      "id": "demo-praca-central",
+      "nome": "CAM 01 · Praça Central (vista superior)",
+      "fonte": "uploads/demo/praca-central.mp4",
+      "fps_analise": 3,
+      "zerar_ao_reiniciar_video": false,
+      "andar": "T",
+      "area_negocio": "Escadas rolantes e café",
+      "credito": "Vídeo de demonstração: Pexels (uso livre)",
+      "linhas": [
+        {
+          "id": "escadas",
+          "nome": "Passagem escadas ↔ praça",
+          "inicio": [
+            0.49,
+            0.38
+          ],
+          "fim": [
+            0.49,
+            0.82
+          ]
+        }
+      ],
+      "zonas": [
+        {
+          "id": "praca",
+          "nome": "Praça central",
+          "poligono": [
+            [
+              0.5,
+              0.3
+            ],
+            [
+              0.93,
+              0.3
+            ],
+            [
+              0.93,
+              0.95
+            ],
+            [
+              0.58,
+              0.95
+            ],
+            [
+              0.5,
+              0.82
+            ]
+          ]
+        },
+        {
+          "id": "cafe",
+          "nome": "Mesas do café",
+          "poligono": [
+            [
+              0.06,
+              0.0
+            ],
+            [
+              0.99,
+              0.0
+            ],
+            [
+              0.99,
+              0.27
+            ],
+            [
+              0.06,
+              0.27
+            ]
+          ]
+        },
+        {
+          "id": "escadas-rolantes",
+          "nome": "Escadas rolantes",
+          "poligono": [
+            [
+              0.0,
+              0.45
+            ],
+            [
+              0.47,
+              0.45
+            ],
+            [
+              0.47,
+              0.98
+            ],
+            [
+              0.0,
+              0.98
+            ]
+          ]
+        }
+      ],
+      "corredor": "Praça Central"
+    },
+    {
+      "id": "demo-corredor-lojas",
+      "nome": "CAM 02 · Corredor Principal Leste",
+      "fonte": "uploads/demo/corredor-lojas.mp4",
+      "fps_analise": 3,
+      "zerar_ao_reiniciar_video": false,
+      "andar": "T",
+      "corredor": "Corredor Principal Leste",
+      "area_negocio": "Moda",
+      "credito": "Vídeo de demonstração: Pexels (uso livre)",
+      "linhas": [
+        {
+          "id": "passagem",
+          "nome": "Passagem do corredor",
+          "inicio": [
+            0.12,
+            0.74
+          ],
+          "fim": [
+            0.88,
+            0.74
+          ]
+        }
+      ],
+      "zonas": [
+        {
+          "id": "vitrine",
+          "nome": "Vitrine Arma Store",
+          "poligono": [
+            [
+              0.0,
+              0.58
+            ],
+            [
+              0.3,
+              0.58
+            ],
+            [
+              0.38,
+              0.86
+            ],
+            [
+              0.0,
+              0.86
+            ]
+          ]
+        },
+        {
+          "id": "corredor",
+          "nome": "Corredor central",
+          "poligono": [
+            [
+              0.31,
+              0.5
+            ],
+            [
+              0.86,
+              0.5
+            ],
+            [
+              0.9,
+              1.0
+            ],
+            [
+              0.38,
+              1.0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-caviar-corredor",
+      "nome": "CAM 03 · Ala Norte (CCTV)",
+      "fonte": "uploads/demo/caviar-corredor.mp4",
+      "fps_analise": 3,
+      "zerar_ao_reiniciar_video": false,
+      "andar": "T",
+      "corredor": "Ala Norte",
+      "credito": "Câmera de segurança real: projeto CAVIAR, shopping em Lisboa (CC BY-SA)",
+      "linhas": [
+        {
+          "id": "passagem",
+          "nome": "Passagem do corredor",
+          "inicio": [
+            0.18,
+            0.56
+          ],
+          "fim": [
+            0.66,
+            0.56
+          ]
+        }
+      ],
+      "zonas": [
+        {
+          "id": "corredor",
+          "nome": "Corredor",
+          "poligono": [
+            [
+              0.2,
+              0.12
+            ],
+            [
+              0.6,
+              0.12
+            ],
+            [
+              0.72,
+              1.0
+            ],
+            [
+              0.16,
+              1.0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-caviar-fachada",
+      "nome": "CAM 04 · Ala Norte · fachada de loja (CCTV)",
+      "fonte": "uploads/demo/caviar-fachada.mp4",
+      "fps_analise": 3,
+      "zerar_ao_reiniciar_video": false,
+      "andar": "T",
+      "corredor": "Ala Norte",
+      "area_negocio": "Moda",
+      "credito": "Câmera de segurança real: projeto CAVIAR, shopping em Lisboa (CC BY-SA). Mesma cena da CAM 03, outro ângulo",
+      "linhas": [
+        {
+          "id": "porta",
+          "nome": "Entrada da loja",
+          "inicio": [
+            0.24,
+            0.64
+          ],
+          "fim": [
+            0.9,
+            0.64
+          ]
+        },
+        {
+          "id": "frente",
+          "nome": "Passagem em frente à loja",
+          "inicio": [
+            0.5,
+            0.62
+          ],
+          "fim": [
+            0.5,
+            0.86
+          ]
+        }
+      ],
+      "zonas": [
+        {
+          "id": "loja",
+          "nome": "Dentro da loja",
+          "poligono": [
+            [
+              0.1,
+              0.05
+            ],
+            [
+              0.92,
+              0.05
+            ],
+            [
+              0.92,
+              0.62
+            ],
+            [
+              0.1,
+              0.62
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-atrio-decorado",
+      "nome": "CAM 05 · Átrio de eventos",
+      "fonte": "uploads/demo/atrio-decorado.mp4",
+      "fps_analise": 3,
+      "zerar_ao_reiniciar_video": false,
+      "andar": "T",
+      "corredor": "Praça Central",
+      "area_negocio": "Eventos",
+      "credito": "Vídeo de demonstração: Pexels (uso livre)",
+      "linhas": [],
+      "zonas": [
+        {
+          "id": "atrio",
+          "nome": "Piso do átrio",
+          "poligono": [
+            [
+              0.0,
+              0.62
+            ],
+            [
+              0.6,
+              0.62
+            ],
+            [
+              0.6,
+              1.0
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-escadas-rolantes",
+      "nome": "CAM 06 · Escadas rolantes centrais",
+      "fonte": "uploads/demo/escadas-rolantes.mp4",
+      "fps_analise": 3,
+      "zerar_ao_reiniciar_video": false,
+      "andar": "T",
+      "corredor": "Escadas rolantes",
+      "credito": "Vídeo de demonstração: Pexels (uso livre)",
+      "linhas": [
+        {
+          "id": "desembarque",
+          "nome": "Desembarque das escadas",
+          "inicio": [
+            0.78,
+            0.35
+          ],
+          "fim": [
+            0.78,
+            0.95
+          ]
+        }
+      ],
+      "zonas": [
+        {
+          "id": "escadas",
+          "nome": "Escadas rolantes",
+          "poligono": [
+            [
+              0.1,
+              0.3
+            ],
+            [
+              0.8,
+              0.22
+            ],
+            [
+              0.8,
+              0.8
+            ],
+            [
+              0.1,
+              0.82
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-hiper-caixas",
+      "nome": "CAM 07 · Hipermercado · caixas",
+      "fonte": "uploads/demo/hiper-caixas.mp4",
+      "fps_analise": 3,
+      "zerar_ao_reiniciar_video": false,
+      "andar": "T",
+      "corredor": "Ala Sul",
+      "area_negocio": "Hipermercado",
+      "credito": "Vídeo de demonstração: Pexels (uso livre)",
+      "linhas": [],
+      "zonas": [
+        {
+          "id": "fila",
+          "nome": "Fila do caixa",
+          "poligono": [
+            [
+              0.0,
+              0.5
+            ],
+            [
+              1.0,
+              0.5
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-hiper-autoatendimento",
+      "nome": "CAM 08 · Hipermercado · autoatendimento",
+      "fonte": "uploads/demo/hiper-autoatendimento.mp4",
+      "fps_analise": 3,
+      "zerar_ao_reiniciar_video": false,
+      "andar": "T",
+      "corredor": "Ala Sul",
+      "area_negocio": "Hipermercado",
+      "credito": "Vídeo de demonstração: Pexels (uso livre)",
+      "linhas": [],
+      "zonas": [
+        {
+          "id": "autoatendimento",
+          "nome": "Caixas de autoatendimento",
+          "poligono": [
+            [
+              0.0,
+              0.42
+            ],
+            [
+              1.0,
+              0.42
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-mezanino",
+      "nome": "CAM 09 · Mezanino",
+      "fonte": "uploads/demo/mezanino.mp4",
+      "fps_analise": 3,
+      "zerar_ao_reiniciar_video": false,
+      "andar": "P1",
+      "corredor": "Mezanino",
+      "credito": "Vídeo de demonstração: Pexels (uso livre)",
+      "linhas": [
+        {
+          "id": "passagem",
+          "nome": "Passagem do mezanino",
+          "inicio": [
+            0.12,
+            0.56
+          ],
+          "fim": [
+            0.66,
+            0.56
+          ]
+        }
+      ],
+      "zonas": [
+        {
+          "id": "loja",
+          "nome": "Frente da loja",
+          "poligono": [
+            [
+              0.68,
+              0.3
+            ],
+            [
+              1.0,
+              0.3
+            ],
+            [
+              1.0,
+              0.82
+            ],
+            [
+              0.68,
+              0.82
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-atrio-aereo",
+      "nome": "CAM 10 · Átrio visto do Piso 1",
+      "fonte": "uploads/demo/atrio-aereo.mp4",
+      "fps_analise": 3,
+      "zerar_ao_reiniciar_video": false,
+      "andar": "P1",
+      "corredor": "Mezanino",
+      "credito": "Vídeo de demonstração: Pexels (uso livre)",
+      "linhas": [],
+      "zonas": [
+        {
+          "id": "rosa",
+          "nome": "Rosa dos ventos",
+          "poligono": [
+            [
+              0.53,
+              0.56
+            ],
+            [
+              0.483,
+              0.751
+            ],
+            [
+              0.37,
+              0.83
+            ],
+            [
+              0.257,
+              0.751
+            ],
+            [
+              0.21,
+              0.56
+            ],
+            [
+              0.257,
+              0.369
+            ],
+            [
+              0.37,
+              0.29
+            ],
+            [
+              0.483,
+              0.369
+            ]
+          ]
+        },
+        {
+          "id": "escadas",
+          "nome": "Pé das escadas rolantes",
+          "poligono": [
+            [
+              0.5,
+              0.62
+            ],
+            [
+              0.98,
+              0.55
+            ],
+            [
+              0.98,
+              0.98
+            ],
+            [
+              0.62,
+              0.98
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-praca-alimentacao",
+      "nome": "CAM 11 · Praça de Alimentação · balcões",
+      "fonte": "uploads/demo/praca-alimentacao.mp4",
+      "fps_analise": 3,
+      "zerar_ao_reiniciar_video": false,
+      "andar": "P1",
+      "corredor": "Praça de Alimentação",
+      "area_negocio": "Alimentação",
+      "credito": "Vídeo de demonstração: Pexels (uso livre)",
+      "linhas": [
+        {
+          "id": "frente",
+          "nome": "Passagem em frente aos balcões",
+          "inicio": [
+            0.3,
+            0.5
+          ],
+          "fim": [
+            0.3,
+            0.88
+          ]
+        }
+      ],
+      "zonas": [
+        {
+          "id": "fila",
+          "nome": "Fila dos balcões",
+          "poligono": [
+            [
+              0.0,
+              0.45
+            ],
+            [
+              0.28,
+              0.45
+            ],
+            [
+              0.28,
+              0.78
+            ],
+            [
+              0.0,
+              0.78
+            ]
+          ]
+        },
+        {
+          "id": "mesas",
+          "nome": "Mesas",
+          "poligono": [
+            [
+              0.34,
+              0.52
+            ],
+            [
+              1.0,
+              0.48
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              0.3,
+              1.0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-quiosques",
+      "nome": "CAM 12 · Praça de Alimentação · quiosques",
+      "fonte": "uploads/demo/quiosques.mp4",
+      "fps_analise": 3,
+      "zerar_ao_reiniciar_video": false,
+      "andar": "P1",
+      "corredor": "Praça de Alimentação",
+      "area_negocio": "Alimentação",
+      "credito": "Vídeo de demonstração: Pexels (uso livre)",
+      "linhas": [
+        {
+          "id": "passagem",
+          "nome": "Passagem",
+          "inicio": [
+            0.02,
+            0.8
+          ],
+          "fim": [
+            0.92,
+            0.8
+          ]
+        }
+      ],
+      "zonas": [
+        {
+          "id": "quiosques",
+          "nome": "Frente dos quiosques",
+          "poligono": [
+            [
+              0.0,
+              0.55
+            ],
+            [
+              0.75,
+              0.55
+            ],
+            [
+              0.75,
+              0.76
+            ],
+            [
+              0.0,
+              0.76
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-fast-food",
+      "nome": "CAM 13 · Praça de Alimentação · fila do fast food",
+      "fonte": "uploads/demo/fast-food.mp4",
+      "fps_analise": 3,
+      "zerar_ao_reiniciar_video": false,
+      "andar": "P1",
+      "corredor": "Praça de Alimentação",
+      "area_negocio": "Alimentação",
+      "credito": "Vídeo de demonstração: Pexels (uso livre)",
+      "linhas": [
+        {
+          "id": "passagem",
+          "nome": "Passagem",
+          "inicio": [
+            0.62,
+            0.55
+          ],
+          "fim": [
+            0.62,
+            0.95
+          ]
+        }
+      ],
+      "zonas": [
+        {
+          "id": "fila",
+          "nome": "Fila do caixa",
+          "poligono": [
+            [
+              0.25,
+              0.55
+            ],
+            [
+              0.58,
+              0.55
+            ],
+            [
+              0.58,
+              0.88
+            ],
+            [
+              0.25,
+              0.88
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-corredor-gastronomico",
+      "nome": "CAM 14 · Corredor gastronômico",
+      "fonte": "uploads/demo/corredor-gastronomico.mp4",
+      "fps_analise": 3,
+      "zerar_ao_reiniciar_video": false,
+      "andar": "P1",
+      "corredor": "Piso 1 · Corredor Leste",
+      "area_negocio": "Alimentação",
+      "credito": "Vídeo de demonstração: Pexels (uso livre)",
+      "linhas": [
+        {
+          "id": "entrada",
+          "nome": "Entrada do corredor",
+          "inicio": [
+            0.16,
+            0.82
+          ],
+          "fim": [
+            0.82,
+            0.82
+          ]
+        }
+      ],
+      "zonas": [
+        {
+          "id": "mesas",
+          "nome": "Mesas do restaurante",
+          "poligono": [
+            [
+              0.0,
+              0.58
+            ],
+            [
+              0.2,
+              0.58
+            ],
+            [
+              0.2,
+              1.0
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "corredor",
+          "nome": "Corredor",
+          "poligono": [
+            [
+              0.3,
+              0.52
+            ],
+            [
+              0.7,
+              0.52
+            ],
+            [
+              0.86,
+              1.0
+            ],
+            [
+              0.2,
+              1.0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-area-eventos",
+      "nome": "CAM 15 · Área de shows",
+      "fonte": "uploads/demo/area-eventos.mp4",
+      "fps_analise": 3,
+      "zerar_ao_reiniciar_video": false,
+      "andar": "P1",
+      "corredor": "Piso 1 · Ala Cinema",
+      "area_negocio": "Eventos",
+      "credito": "Vídeo de demonstração: Pexels (uso livre)",
+      "linhas": [
+        {
+          "id": "palco",
+          "nome": "Acesso ao palco",
+          "inicio": [
+            0.5,
+            0.36
+          ],
+          "fim": [
+            1.0,
+            0.36
+          ]
+        }
+      ],
+      "zonas": [
+        {
+          "id": "mesas",
+          "nome": "Mesas do evento",
+          "poligono": [
+            [
+              0.0,
+              0.32
+            ],
+            [
+              1.0,
+              0.32
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ]
+    },
     {
       "id": "dev-cctv",
       "nome": "DEV · CCTV de loja (YouTube, só teste interno)",
       "fonte": "uploads/cctv-youtube-dev.mp4",
+      "ativa": false,
       "fps_analise": 4,
       "preset": "default",
       "linhas": [
-        { "id": "passagem", "nome": "Passagem do corredor", "inicio": [0.45, 0.72], "fim": [1.0, 0.72] }
+        {
+          "id": "passagem",
+          "nome": "Passagem do corredor",
+          "inicio": [
+            0.45,
+            0.72
+          ],
+          "fim": [
+            1.0,
+            0.72
+          ]
+        }
       ],
       "zonas": [
-        { "id": "corredor", "nome": "Corredor central", "poligono": [[0.35, 0.55], [0.75, 0.45], [1.0, 0.75], [1.0, 1.0], [0.45, 1.0]] }
+        {
+          "id": "corredor",
+          "nome": "Corredor central",
+          "poligono": [
+            [
+              0.35,
+              0.55
+            ],
+            [
+              0.75,
+              0.45
+            ],
+            [
+              1.0,
+              0.75
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              0.45,
+              1.0
+            ]
+          ]
+        }
       ]
     },
     {
       "id": "teste-sintetico",
       "nome": "Teste sintético (6 pessoas)",
       "fonte": "videos/teste-sintetico-6-pessoas.mp4",
+      "ativa": false,
       "fps_analise": 4,
       "preset": "default"
     }

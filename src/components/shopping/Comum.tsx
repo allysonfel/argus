@@ -13,13 +13,13 @@ export function SeloDemo() {
 
 export function TituloPagina({ titulo, descricao, demo = true, children }: { titulo: string; descricao?: string; demo?: boolean; children?: ReactNode }) {
   return (
-    <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+    <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
       <div className="min-w-0">
         <div className="mb-1 flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold text-on-surface">{titulo}</h1>
+          <h1 className="text-[28px] font-bold leading-tight text-on-surface">{titulo}</h1>
           {demo && <SeloDemo />}
         </div>
-        {descricao && <p className="max-w-3xl text-sm text-on-surface-variant">{descricao}</p>}
+        {descricao && <p className="mt-1 max-w-3xl text-sm leading-relaxed text-on-surface-variant">{descricao}</p>}
       </div>
       {children}
     </div>
@@ -31,7 +31,7 @@ export function Secao({ titulo, descricao, acao, children, className }: { titulo
     <Card className={cn('min-w-0', className)}>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h2 className="text-base font-semibold text-on-surface">{titulo}</h2>
+          <h2 className="text-base font-bold text-on-surface">{titulo}</h2>
           {descricao && <p className="mt-0.5 text-xs text-on-surface-variant">{descricao}</p>}
         </div>
         {acao}
@@ -58,7 +58,7 @@ export function Tabela({ cabecalho, linhas, alinharDireita = [] }: { cabecalho: 
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-outline-variant text-left text-xs uppercase tracking-wide text-on-surface-variant">
+          <tr className="border-b border-outline-variant text-left text-[11px] uppercase tracking-wider text-on-surface-variant">
             {cabecalho.map((c, i) => (
               <th key={c} className={cn('px-2 py-2 font-semibold', alinharDireita.includes(i) && 'text-right')}>
                 {c}
@@ -68,7 +68,7 @@ export function Tabela({ cabecalho, linhas, alinharDireita = [] }: { cabecalho: 
         </thead>
         <tbody>
           {linhas.map((l, i) => (
-            <tr key={i} className="border-b border-outline-variant/60 last:border-0">
+            <tr key={i} className="border-b border-outline-variant/60 transition-colors last:border-0 hover:bg-surface-container-low/70">
               {l.map((c, j) => (
                 <td key={j} className={cn('px-2 py-2 text-on-surface', alinharDireita.includes(j) && 'text-right tabular-nums')}>
                   {c}

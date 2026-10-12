@@ -14,7 +14,6 @@ export type Zona = { id: string; nome: string; andar: Andar; areaId: string; cor
 export type Loja = { id: string; nome: string; categoria: string; andar: Andar; rect: Retangulo; frenteZonaId: string; portaVisivel: boolean; plano: 'Básico' | 'Completo' | null };
 export type Entrada = { id: string; nome: string; andar: Andar; rect: Retangulo; peso: number; zonaId: string };
 export type Camera = { id: string; nome: string; andar: Andar; x: number; y: number; zonas: string[] };
-export type AreaRestrita = { id: string; nome: string; andar: Andar; rect: Retangulo; agenda: string; cameraId: string };
 
 export const ANDARES: { id: Andar; nome: string }[] = [
   { id: 'T', nome: 'Térreo' },
@@ -139,11 +138,6 @@ export const ESCADAS: { andar: Andar; rect: Retangulo }[] = [
 
 export const CINEMA: Retangulo = { x: X0 + 3 * CEL + 3, y: 413, w: CEL * 3 - 6, h: 100 };
 
-export const AREAS_RESTRITAS: AreaRestrita[] = [
-  { id: 'ar-doca', nome: 'Doca de carga e descarga', andar: 'T', rect: { x: 800, y: 430, w: 180, h: 100 }, agenda: '22h às 8h (fora do expediente)', cameraId: 'CAM-T-21' },
-  { id: 'ar-tesouraria', nome: 'Corredor da tesouraria', andar: 'T', rect: { x: 20, y: 430, w: 160, h: 100 }, agenda: '24 horas', cameraId: 'CAM-T-22' },
-  { id: 'ar-telhado', nome: 'Acesso ao telhado / casa de máquinas', andar: 'P1', rect: { x: 820, y: 30, w: 160, h: 100 }, agenda: '24 horas', cameraId: 'CAM-P1-14' },
-];
 
 // Câmeras de corredor (demonstração): uma por par de zonas, aproximadamente.
 function construirCameras(): Camera[] {
@@ -164,9 +158,6 @@ function construirCameras(): Camera[] {
       cams.push({ id: `CAM-${andar}-${String(i + 1).padStart(2, '0')}`, nome: `${g[0].corredor} · câm. ${i + 1}`, andar, x: (r.x + r.x2) / 2, y: (r.y + r.y2) / 2, zonas: g.map((z) => z.id) });
     });
   }
-  cams.push({ id: 'CAM-T-21', nome: 'Doca de carga', andar: 'T', x: 890, y: 480, zonas: [] });
-  cams.push({ id: 'CAM-T-22', nome: 'Corredor da tesouraria', andar: 'T', x: 100, y: 480, zonas: [] });
-  cams.push({ id: 'CAM-P1-14', nome: 'Acesso ao telhado', andar: 'P1', x: 900, y: 80, zonas: [] });
   return cams;
 }
 export const CAMERAS: Camera[] = construirCameras();

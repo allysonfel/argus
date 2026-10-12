@@ -36,6 +36,13 @@ class MotorConfig:
     # Largura máxima dos quadros enviados ao painel (só exibição, não afeta a IA).
     previa_largura_max: int = 960
     previa_qualidade_jpeg: int = 75
+    # Teto de fps de análise das câmeras que ninguém está assistindo no
+    # painel (null = sem teto). Com hardware fraco (CPU), deixa a câmera
+    # aberta na tela com o fps cheio e as demais contando mais devagar.
+    fps_analise_sem_espectador: float | None = None
+    # Re-ID (ver reid.py): "osnet" (aparência da pessoa inteira, só na câmera
+    # aberta no painel) ou "histograma" (só cor da roupa, sem modelo extra).
+    reid: str = "osnet"
 
     @classmethod
     def carregar(cls, caminho: Path | None = None) -> "MotorConfig":
@@ -51,6 +58,15 @@ class TrackerConfig:
 
     # Detector: confiança mínima pra aceitar uma pessoa
     det_conf_threshold: float = 0.4
+
+    # Rastreador: "ocsort" (padrão; pacote `trackers`, lida melhor com
+    # oclusão e cruzamento de pessoas) ou "bytetrack" (supervision).
+    rastreador: str = "ocsort"
+    # OC-SORT: IoU mínimo pra casar caixa prevista e detecção (baixo porque
+    # a 3-5 fps a pessoa anda bastante entre análises) e confiança a partir
+    # da qual a detecção entra na primeira rodada de associação.
+    ocsort_iou_minimo: float = 0.1
+    ocsort_confianca_alta: float = 0.5
 
     # ByteTrack (supervision)
     track_activation_threshold: float = 0.25
@@ -129,6 +145,9 @@ class CameraConfig:
     andar: str | None = None
     corredor: str | None = None
     area_negocio: str | None = None
+    # Origem do vídeo quando não é câmera do cliente (vídeo de demonstração),
+    # exibida no painel junto da imagem.
+    credito: str | None = None
 
     @classmethod
     def de_dict(cls, d: dict) -> "CameraConfig":
