@@ -1,71 +1,13 @@
-// DADOS DE DEMONSTRAÇÃO de segurança e saúde das câmeras: alertas de
-// áreas restritas, estado de cada câmera e descritores leves de pessoas
-// (busca de criança perdida). Determinísticos, como o resto de demo.ts.
+// DADOS DE DEMONSTRAÇÃO de segurança e saúde das câmeras: estado de cada
+// câmera e descritores leves de pessoas (busca de criança perdida). Determinísticos, como o resto de demo.ts.
 
-import { agoraDemo, hash, somarDias } from './demo';
-import { AREAS_RESTRITAS, CAMERAS, ZONAS, centro, type Andar } from './planta';
-
-// ---------- áreas restritas ----------
-
-export type StatusAlerta = 'novo' | 'atendimento' | 'resolvido' | 'falso';
-export type Alerta = {
-  id: string;
-  areaId: string;
-  cameraId: string;
-  tipo: 'Pessoa em área restrita' | 'Câmera tapada ou escura' | 'Câmera desviada' | 'Câmera offline';
-  prioridade: 'alta' | 'media';
-  quando: string; // "AAAA-MM-DD HH:MM"
-  confiancaPct: number;
-  permanenciaS: number;
-  status: StatusAlerta;
-  responsavel?: string;
-  observacao?: string;
-};
-
-export const ROTULO_STATUS: Record<StatusAlerta, string> = { novo: 'Novo', atendimento: 'Em atendimento', resolvido: 'Resolvido', falso: 'Falso alarme' };
-
-export function alertasDemo(): Alerta[] {
-  const hoje = agoraDemo().data;
-  const ontem = somarDias(hoje, -1);
-  const d = (n: number) => somarDias(hoje, -n);
-  return [
-    { id: 'AL-1042', areaId: 'ar-doca', cameraId: 'CAM-T-21', tipo: 'Pessoa em área restrita', prioridade: 'alta', quando: `${hoje} 03:12`, confiancaPct: 91, permanenciaS: 48, status: 'novo' },
-    { id: 'AL-1041', areaId: 'ar-telhado', cameraId: 'CAM-P1-14', tipo: 'Câmera tapada ou escura', prioridade: 'alta', quando: `${hoje} 01:47`, confiancaPct: 100, permanenciaS: 0, status: 'atendimento', responsavel: 'Carlos (ronda noturna)' },
-    { id: 'AL-1040', areaId: 'ar-tesouraria', cameraId: 'CAM-T-22', tipo: 'Pessoa em área restrita', prioridade: 'alta', quando: `${ontem} 23:58`, confiancaPct: 84, permanenciaS: 12, status: 'falso', responsavel: 'Marta', observacao: 'Equipe de limpeza autorizada, fora da janela cadastrada.' },
-    { id: 'AL-1039', areaId: 'ar-doca', cameraId: 'CAM-T-21', tipo: 'Pessoa em área restrita', prioridade: 'alta', quando: `${d(2)} 05:31`, confiancaPct: 88, permanenciaS: 95, status: 'resolvido', responsavel: 'Carlos (ronda noturna)', observacao: 'Fornecedor chegou antes do horário. Liberado pela portaria.' },
-    { id: 'AL-1038', areaId: 'ar-doca', cameraId: 'CAM-T-21', tipo: 'Pessoa em área restrita', prioridade: 'alta', quando: `${d(3)} 02:10`, confiancaPct: 72, permanenciaS: 9, status: 'falso', responsavel: 'Marta', observacao: 'Gato. Ajustar permanência mínima.' },
-    { id: 'AL-1037', areaId: 'ar-telhado', cameraId: 'CAM-P1-14', tipo: 'Câmera desviada', prioridade: 'alta', quando: `${d(5)} 14:22`, confiancaPct: 100, permanenciaS: 0, status: 'resolvido', responsavel: 'Manutenção', observacao: 'Suporte frouxo, câmera reposicionada.' },
-    { id: 'AL-1036', areaId: 'ar-tesouraria', cameraId: 'CAM-T-22', tipo: 'Pessoa em área restrita', prioridade: 'alta', quando: `${d(6)} 22:41`, confiancaPct: 93, permanenciaS: 30, status: 'resolvido', responsavel: 'Marta', observacao: 'Funcionário da tesouraria em hora extra, sem aviso prévio.' },
-  ];
-}
-
-export type JanelaManutencao = { areaId: string; inicio: string; fim: string; motivo: string; agendadoPor: string };
-
-export function manutencoesDemo(): JanelaManutencao[] {
-  const hoje = agoraDemo().data;
-  return [
-    { areaId: 'ar-telhado', inicio: `${somarDias(hoje, 2)} 08:00`, fim: `${somarDias(hoje, 2)} 12:00`, motivo: 'Manutenção do ar-condicionado central', agendadoPor: 'Operações (João)' },
-    { areaId: 'ar-doca', inicio: `${somarDias(hoje, 1)} 06:00`, fim: `${somarDias(hoje, 1)} 07:30`, motivo: 'Entrega programada de mobiliário', agendadoPor: 'Administração (Paula)' },
-  ];
-}
-
-export const REGRAS_ANTI_FALSO = {
-  confiancaMinimaPct: 70,
-  permanenciaMinimaS: 5,
-  quadrosConsecutivos: 8,
-  infravermelho: 'Modelo noturno ativado entre 18h e 6h (imagem em preto e branco)',
-  retencaoEvidenciaDias: 30,
-  clipeSegundos: 10,
-};
-
-export function nomeAreaRestrita(id: string) {
-  return AREAS_RESTRITAS.find((a) => a.id === id)?.nome ?? id;
-}
+import { hash } from './demo';
+import { CAMERAS, ZONAS, centro, type Andar } from './planta';
 
 // ---------- saúde das câmeras ----------
 
 export type EstadoCamera = 'online' | 'sem-frames' | 'offline' | 'escura' | 'desfocada' | 'desviada';
-export type SaudeCamera = { id: string; nome: string; andar: Andar; estado: EstadoCamera; fps: number; ultimoFrameS: number; fonte: string; restrita: boolean };
+export type SaudeCamera = { id: string; nome: string; andar: Andar; estado: EstadoCamera; fps: number; ultimoFrameS: number; fonte: string };
 
 export const ROTULO_ESTADO: Record<EstadoCamera, string> = {
   online: 'Online',
@@ -81,7 +23,7 @@ const ESTADOS_FIXOS: Record<string, EstadoCamera> = {
   'CAM-P1-05': 'sem-frames',
   'CAM-T-12': 'desfocada',
   'CAM-P1-09': 'desviada',
-  'CAM-P1-14': 'escura',
+  'CAM-T-03': 'escura',
 };
 
 export function saudeCameras(): SaudeCamera[] {
@@ -97,7 +39,6 @@ export function saudeCameras(): SaudeCamera[] {
       fps: estado === 'offline' ? 0 : estado === 'sem-frames' ? 0 : Math.round((3.6 + 0.8 * hash(c.id + 'fps')) * 10) / 10,
       ultimoFrameS: estado === 'offline' ? 3 * 3600 + 1240 : estado === 'sem-frames' ? 7 * 60 + 20 : Math.round(hash(c.id + 'ult') * 2 * 10) / 10,
       fonte: `rtsp://***@10.20.${nvr}.10:554/cam/realmonitor?channel=${canal <= 16 ? canal : canal - 16}&subtype=1`,
-      restrita: c.zonas.length === 0,
     };
   });
 }

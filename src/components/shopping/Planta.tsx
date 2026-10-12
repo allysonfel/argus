@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { AREAS_RESTRITAS, CAMERAS, CINEMA, ENTRADAS, ESCADAS, LOJAS, ZONAS, type Andar } from '@/lib/shopping/planta';
+import { CAMERAS, CINEMA, ENTRADAS, ESCADAS, LOJAS, ZONAS, type Andar } from '@/lib/shopping/planta';
 
 // Escala sequencial de um matiz só (azul, claro -> escuro), da paleta de
 // referência do guia de visualização. Claro = pouco movimento.
@@ -41,7 +41,6 @@ type Props = {
   setas?: Seta[];
   marcadores?: Marcador[];
   mostrarCameras?: boolean;
-  mostrarRestritas?: boolean;
   lojaDestacada?: string;
 };
 
@@ -51,7 +50,7 @@ function textoValor(v: number, f: Props['formatarValor']): string {
   return `${v.toFixed(1)} passagens/dia por 1.000 px²`;
 }
 
-export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'densidade', destaque = [], selecionada, linkZona, setas = [], marcadores = [], mostrarCameras, mostrarRestritas, lojaDestacada }: Props) {
+export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'densidade', destaque = [], selecionada, linkZona, setas = [], marcadores = [], mostrarCameras, lojaDestacada }: Props) {
   const [hover, setHover] = useState<{ x: number; y: number; texto: string[] } | null>(null);
   const zonas = ZONAS.filter((z) => z.andar === andar);
   const vals = zonas.map((z) => valores?.[z.id] ?? 0);
@@ -146,21 +145,8 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
             </g>
           ))}
 
-        {mostrarRestritas &&
-          AREAS_RESTRITAS.filter((a) => a.andar === andar).map((a) => (
-            <g key={a.id}>
-              <rect x={a.rect.x} y={a.rect.y} width={a.rect.w} height={a.rect.h} rx="3" fill="url(#hachura)" stroke="#d03b3b" strokeWidth="2" />
-              <text x={a.rect.x + a.rect.w / 2} y={a.rect.y + a.rect.h / 2 + 4} textAnchor="middle" className="fill-[var(--viz-texto)] text-[10px] font-semibold">
-                {a.nome.length > 24 ? a.nome.slice(0, 22) + '…' : a.nome}
-              </text>
-            </g>
-          ))}
 
         <defs>
-          <pattern id="hachura" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <rect width="8" height="8" fill="var(--viz-loja)" />
-            <line x1="0" y1="0" x2="0" y2="8" stroke="#d03b3b" strokeWidth="2" opacity="0.35" />
-          </pattern>
           <marker id="ponta" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
             <path d="M0 0L10 5L0 10z" fill="var(--viz-seta)" />
           </marker>

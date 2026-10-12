@@ -6,7 +6,7 @@
 // mostra o selo "Dados de demonstração". Quando o banco agregado do motor
 // estiver pronto (etapa 4), estas funções são trocadas por consultas.
 
-import { AREAS, ENTRADAS, LOJAS, ZONAS, centro, centroArea, type Andar, type Zona } from './planta';
+import { AREAS, ENTRADAS, ZONAS, centro, centroArea, type Andar, type Zona } from './planta';
 import { datasComerciais, janela } from './datasComerciais';
 
 export const HORA_ABRE = 10;
@@ -417,45 +417,6 @@ export function qualidadePortais(iso: string): { de: string; para: string; saida
       const chegadas = Math.round(f.valor * (1 - desvio));
       return { de: f.de, para: f.para, saidas: f.valor, chegadas, divergenciaPct: Math.round(Math.abs(desvio) * 1000) / 10 };
     });
-}
-
-// ---------- lojas (portal do lojista) ----------
-
-export type MetricasLoja = {
-  passantes: number;
-  paradas: number;
-  taxaParadaPct: number;
-  tempoMedioParadaS: number;
-  entradas: number | null;
-  conversaoPct: number | null;
-  mediaCorredorPassantes: number;
-};
-
-export function metricasLoja(lojaId: string, inicio: string, fim: string): MetricasLoja {
-  const loja = LOJAS.find((l) => l.id === lojaId)!;
-  const zona = ZONAS.find((z) => z.id === loja.frenteZonaId)!;
-  const dias = diasEntre(inicio, fim);
-  const passantes = dias.reduce((s, d) => s + fluxoZonaDia(zona, d), 0) * 0.92;
-  const taxa = 0.04 + 0.07 * hash(lojaId + 'parada');
-  const conv = 0.06 + 0.12 * hash(lojaId + 'conv');
-  const mesmasZonas = LOJAS.filter((l) => ZONAS.find((z) => z.id === l.frenteZonaId)?.corredor === zona.corredor);
-  const mediaCorredor =
-    mesmasZonas.reduce((s, l) => s + dias.reduce((t, d) => t + fluxoZonaDia(ZONAS.find((z) => z.id === l.frenteZonaId)!, d), 0) * 0.92, 0) / Math.max(1, mesmasZonas.length);
-  return {
-    passantes: Math.round(passantes),
-    paradas: Math.round(passantes * taxa),
-    taxaParadaPct: Math.round(taxa * 1000) / 10,
-    tempoMedioParadaS: Math.round(8 + 17 * hash(lojaId + 'tempo')),
-    entradas: loja.portaVisivel ? Math.round(passantes * conv) : null,
-    conversaoPct: loja.portaVisivel ? Math.round(conv * 1000) / 10 : null,
-    mediaCorredorPassantes: Math.round(mediaCorredor),
-  };
-}
-
-export function passantesPorDia(lojaId: string, inicio: string, fim: string): { data: string; valor: number }[] {
-  const loja = LOJAS.find((l) => l.id === lojaId)!;
-  const zona = ZONAS.find((z) => z.id === loja.frenteZonaId)!;
-  return diasEntre(inicio, fim).map((d) => ({ data: d, valor: Math.round(fluxoZonaDia(zona, d) * 0.92) }));
 }
 
 /** Antes x depois de uma ação: mesmas N semanas antes e depois, alinhadas por dia da semana. */
