@@ -106,6 +106,30 @@ Cada pessoa leva no WebSocket o caminho (`p`, pés em 0-1) desde que
 entrou na imagem; o painel desenha o caminho atual e o de quem passou nos
 últimos 2 minutos.
 
+## Casos reais de demonstração
+
+As telas Mapa de calor, Corredores e lojas, Zonas mortas, Rotas e fluxo e
+Busca de criança perdida abrem num **caso real**: o vídeo de uma câmera de
+demonstração com o resultado do motor desenhado por cima, sincronizado.
+
+```bash
+uv run --group casos gerar_casos.py             # depois do preparar_demo.py
+uv run --group casos gerar_casos.py --refazer   # refaz tudo (~15 min em CPU)
+```
+
+O script roda o motor inteiro uma vez por vídeo (RF-DETR medium, confiança
+0,3, OC-SORT + costura + Re-ID, 3 fps) e grava em `casos/`:
+`<camera>.json` com o trajeto de cada pessoa, cor dominante da roupa de
+cima e de baixo, estatura estimada (altura da caixa x altura típica de um
+adulto naquele ponto da imagem) e um recorte em `casos/recortes/`. Os
+vídeos vão para `casos/videos/` em H.264 (o mp4v do `preparar_demo.py` não
+toca no navegador; fora do git). O motor serve a pasta em `/casos`.
+
+As áreas de cada caso (vitrine, porta, portais, piso) ficam no painel, em
+`src/lib/shopping/casos.ts`. A loja da Ala Norte (CAVIAR) foi calibrada
+contra o gabarito manual: 17 pessoas, 7 entradas, 5 saídas e 3 paradas na
+vitrine; o sistema chega a 19 / 6 / 4 / 5.
+
 ## Desempenho em CPU
 
 Sem GPU, cada inferência do `rfdetr-nano` leva ~150 ms e o modelo é

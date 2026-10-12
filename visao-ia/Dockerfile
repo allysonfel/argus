@@ -17,6 +17,10 @@ COPY config ./config
 COPY presets ./presets
 COPY videos ./videos
 COPY uploads ./uploads
+COPY casos ./casos
+# Os vídeos dos casos (H.264, 15 fps) servem também de fonte das câmeras
+# ao vivo: o upload leva só os que não estão em casos/videos.
+RUN mkdir -p uploads/demo && cp -n casos/videos/*.mp4 uploads/demo/ 2>/dev/null || true
 
 # Baixa os pesos do rfdetr-nano agora, não no primeiro boot
 RUN python -c "import rfdetr; rfdetr.RFDETRNano(device='cpu')"

@@ -12,6 +12,8 @@ Endpoints:
     POST /api/cameras/{id}/zerar        zera as contagens da câmera
     WS   /ws/cameras/{id}               ao vivo: quadros + metadados
     WS   /ws/mosaico                    miniaturas de várias câmeras numa conexão só
+    GET  /casos/...                     casos reais de demonstração (gerar_casos.py):
+                                        <camera>.json, recortes/*.jpg, videos/*.mp4
 
 Protocolo do WebSocket (servidor -> painel):
     - mensagem BINÁRIA: 8 bytes (float64 little-endian, timestamp da
@@ -42,9 +44,10 @@ from contextlib import asynccontextmanager
 import cv2
 from fastapi import FastAPI, HTTPException, Response, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from .analisador import AnalisadorCamera
-from .config import MotorConfig, carregar_cameras
+from .config import RAIZ, MotorConfig, carregar_cameras
 from .inferencia import DetectorPessoas
 
 # Teto de quadros/s enviados pra exibição (vídeo de 60 fps não precisa ir inteiro).
@@ -83,6 +86,8 @@ app = FastAPI(title="Argus Visão", lifespan=lifespan)
 
 origens = os.environ.get("ARGUS_PAINEL_ORIGENS", "http://localhost:3000,http://localhost:3002").split(",")
 app.add_middleware(CORSMiddleware, allow_origins=origens, allow_methods=["*"], allow_headers=["*"])
+# Arquivos estáticos (com Range, pra o <video> do painel poder pular no tempo).
+app.mount("/casos", StaticFiles(directory=RAIZ / "casos", check_dir=False), name="casos")
 
 
 def _analisador(camera_id: str) -> AnalisadorCamera:

@@ -1,0 +1,90 @@
+[
+ {
+  "camera": "demo-praca-central",
+  "nome": "CAM 01 · Praça Central (vista superior)",
+  "andar": "T",
+  "corredor": "Praça Central",
+  "duracao_s": 54.27,
+  "pessoas": 37
+ },
+ {
+  "camera": "demo-caviar-corredor",
+  "nome": "CAM 03 · Ala Norte (CCTV)",
+  "andar": "T",
+  "corredor": "Ala Norte",
+  "duracao_s": 94.4,
+  "pessoas": 19
+ },
+ {
+  "camera": "demo-caviar-fachada",
+  "nome": "CAM 04 · Ala Norte · fachada de loja (CCTV)",
+  "andar": "T",
+  "corredor": "Ala Norte",
+  "duracao_s": 94.4,
+  "pessoas": 9
+ },
+ {
+  "camera": "demo-mezanino",
+  "nome": "CAM 09 · Mezanino",
+  "andar": "P1",
+  "corredor": "Mezanino",
+  "duracao_s": 14.53,
+  "pessoas": 18
+ },
+ {
+  "camera": "demo-corredor-lojas",
+  "nome": "CAM 02 · Corredor Principal Leste",
+  "andar": "T",
+  "corredor": "Corredor Principal Leste",
+  "duracao_s": 18.07,
+  "pessoas": 26
+ },
+ {
+  "camera": "demo-corredor-gastronomico",
+  "nome": "CAM 14 · Corredor gastronômico",
+  "andar": "P1",
+  "corredor": "Piso 1 · Corredor Leste",
+  "duracao_s": 20.0,
+  "pessoas": 23
+ },
+ {
+  "camera": "demo-praca-alimentacao",
+  "nome": "CAM 11 · Praça de Alimentação · balcões",
+  "andar": "P1",
+  "corredor": "Praça de Alimentação",
+  "duracao_s": 81.53,
+  "pessoas": 74
+ },
+ {
+  "camera": "demo-quiosques",
+  "nome": "CAM 12 · Praça de Alimentação · quiosques",
+  "andar": "P1",
+  "corredor": "Praça de Alimentação",
+  "duracao_s": 4.6,
+  "pessoas": 9
+ },
+ {
+  "camera": "demo-fast-food",
+  "nome": "CAM 13 · Praça de Alimentação · fila do fast food",
+  "andar": "P1",
+  "corredor": "Praça de Alimentação",
+  "duracao_s": 5.93,
+  "pessoas": 13
+ },
+ {
+  "camera": "demo-escadas-rolantes",
+  "nome": "CAM 06 · Escadas rolantes centrais",
+  "andar": "T",
+  "corredor": "Escadas rolantes",
+  "duracao_s": 5.53,
+  "pessoas": 17
+ },
+ {
+  "camera": "demo-atrio-aereo",
+  "nome": "CAM 10 · Átrio visto do Piso 1",
+  "andar": "P1",
+  "corredor": "Mezanino",
+  "duracao_s": 8.07,
+  "pessoas": 23
+ }
+]
