@@ -5,7 +5,18 @@ especificada no briefing original, com o motivo de cada uma. Escrito
 durante uma sessão autônoma (o usuário estava dormindo) — sem pausa pra
 perguntar, conforme instruído.
 
-## Publicação em `argus.sistemainterno.app`
+## Publicação: projeto Railway `argus`, domínio do Railway
+
+**Decisão atual (2026-10-12):** o Argus roda no projeto Railway
+exclusivo `argus` e é acessado em
+https://argus-production-49d3.up.railway.app. Não usar
+`sistemainterno.app` nem o roteador do projeto `sistema-interno`: o
+roteador só alcança serviços do próprio projeto, então depois que o
+Argus foi para o projeto `argus` o endereço antigo passou a dar
+"Erro ao encaminhar a requisição". Próximos deploys vão para o projeto
+`argus`.
+
+### Histórico: primeira publicação em `argus.sistemainterno.app`
 
 A mensagem original tinha duas instruções em conflito: "NÃO faça deploy
 em nenhum provedor de nuvem sem eu pedir numa próxima conversa" (regra

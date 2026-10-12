@@ -168,3 +168,62 @@ export const IconeLua = (p: IconeProps) => (
     <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />
   </Base>
 );
+
+export const IconeCalor = (p: IconeProps) => (
+  <Base {...p}>
+    <path d="M12 3c1 3 4 4.5 4 8.5a4 4 0 0 1-8 0c0-2 1-3 1.5-4 .5 1.5 1.5 2 2.5 2 0-2-1-4 0-6.5z" />
+    <path d="M5 21h14" />
+  </Base>
+);
+
+export const IconeCorredor = (p: IconeProps) => (
+  <Base {...p}>
+    <path d="M3 4h7v16H3zM14 4h7v16h-7z" />
+    <path d="M12 6v2M12 11v2M12 16v2" />
+  </Base>
+);
+
+export const IconeZonaMorta = (p: IconeProps) => (
+  <Base {...p}>
+    <rect x="3" y="3" width="18" height="18" rx="1" />
+    <path d="M8 16l3-4 2 2 3-5" />
+    <path d="M3 3l18 18" />
+  </Base>
+);
+
+export const IconeComparar = (p: IconeProps) => (
+  <Base {...p}>
+    <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+  </Base>
+);
+
+export const IconeRotas = (p: IconeProps) => (
+  <Base {...p}>
+    <circle cx="6" cy="18" r="2" />
+    <circle cx="18" cy="6" r="2" />
+    <path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6" />
+  </Base>
+);
+
+export const IconeEscudo = (p: IconeProps) => (
+  <Base {...p}>
+    <path d="M12 3l8 3v6c0 4.5-3.5 8-8 9-4.5-1-8-4.5-8-9V6z" />
+    <path d="M12 8v5M12 16h.01" />
+  </Base>
+);
+
+export const IconeCrianca = (p: IconeProps) => (
+  <Base {...p}>
+    <circle cx="10" cy="5" r="2" />
+    <path d="M10 8v6M7 11h6M10 14l-2 6M10 14l2 6" />
+    <circle cx="17.5" cy="15.5" r="3" />
+    <path d="M20 18l2 2" />
+  </Base>
+);
+
+export const IconeLoja = (p: IconeProps) => (
+  <Base {...p}>
+    <path d="M4 9l1.5-5h13L20 9M4 9h16M4 9v11h16V9" />
+    <path d="M9 20v-6h6v6" />
+  </Base>
+);

@@ -7,7 +7,6 @@ import { fazerLogout } from '@/app/(sistema)/login/actions';
 import { ThemeToggle } from './ThemeToggle';
 import {
   IconeVisaoGeral,
-  IconeCamera,
   IconePonto,
   IconeMapaPin,
   IconeMapa,
@@ -19,7 +18,6 @@ import {
 
 const ABAS = [
   { href: '/painel', label: 'Visão Geral', Icone: IconeVisaoGeral },
-  { href: '/painel/ao-vivo', label: 'Câmeras ao vivo', Icone: IconeCamera },
   { href: '/painel/ponto', label: 'Ponto & Banco de Horas', Icone: IconePonto },
   { href: '/painel/mapa-dispositivos', label: 'Mapa de Dispositivos', Icone: IconeMapaPin },
   { href: '/painel/mapa-ponto', label: 'Mapa do Ponto', Icone: IconeMapa },

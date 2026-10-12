@@ -184,3 +184,44 @@ body {
   border-radius: 8px;
   z-index: 0;
 }
+
+/* ---------- Painel do shopping: cores de visualização ----------
+ * Séries categóricas na ordem fixa da paleta de referência (validada pra
+ * daltonismo): 1 azul, 2 laranja, 3 verde-água. Planta: fundo, corredor,
+ * lojas e setas. O tema escuro tem seus próprios passos, não é inversão. */
+:root {
+  --serie-1: #2a78d6;
+  --serie-2: #eb6834;
+  --serie-3: #1baf7a;
+  --viz-grade: #e4e3df;
+  --viz-eixo: #6b6a66;
+  --viz-fundo: #fcfcfb;
+  --viz-corredor: #e9edf3;
+  --viz-loja: #f2f1ee;
+  --viz-loja-destaque: #fde7dc;
+  --viz-linha: #c9c7c1;
+  --viz-texto: #2b2a27;
+  --viz-texto-sec: #6b6a66;
+  --viz-entrada: #52514e;
+  --viz-neutro: #dcdbd6;
+  --viz-seta: #eb6834;
+  --viz-selecao: #0b0b0b;
+}
+html.dark {
+  --serie-1: #3987e5;
+  --serie-2: #d95926;
+  --serie-3: #199e70;
+  --viz-grade: #2f2f2d;
+  --viz-eixo: #a3a29b;
+  --viz-fundo: #1a1a19;
+  --viz-corredor: #2a2d33;
+  --viz-loja: #242422;
+  --viz-loja-destaque: #4a2c1f;
+  --viz-linha: #44443f;
+  --viz-texto: #f0efec;
+  --viz-texto-sec: #a3a29b;
+  --viz-entrada: #6b6a66;
+  --viz-neutro: #4a4a46;
+  --viz-seta: #d95926;
+  --viz-selecao: #f0efec;
+}
