@@ -17,6 +17,7 @@ frames de análise corretos (ex.: 4 fps x 2,5 s = 10 frames).
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -48,8 +49,14 @@ class MotorConfig:
     def carregar(cls, caminho: Path | None = None) -> "MotorConfig":
         caminho = caminho or CONFIG_DIR / "motor.json"
         if not caminho.exists():
-            return cls()
-        return cls(**json.loads(caminho.read_text(encoding="utf-8")))
+            motor = cls()
+        else:
+            motor = cls(**json.loads(caminho.read_text(encoding="utf-8")))
+        # Sobrescreve por ambiente (ex.: servidor com CPU mais fraca que a
+        # máquina de desenvolvimento, ver Dockerfile).
+        if "ARGUS_FPS_SEM_ESPECTADOR" in os.environ:
+            motor.fps_analise_sem_espectador = float(os.environ["ARGUS_FPS_SEM_ESPECTADOR"])
+        return motor
 
 
 @dataclass

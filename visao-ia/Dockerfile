@@ -27,4 +27,8 @@ ENV PYTHONPATH=/app/src
 ENV PORT=8500
 # Threads do torch/OpenMP: o contêiner enxerga todos os núcleos do host
 ENV OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
+# CPU do servidor é mais lenta que a de desenvolvimento: as câmeras que
+# ninguém está assistindo analisam a cada 10 s, sobrando o detector para a
+# câmera aberta no painel (com intervalos longos o rastreio perde as pessoas)
+ENV ARGUS_FPS_SEM_ESPECTADOR=0.1
 CMD ["sh", "-c", "uvicorn argus_visao.api:app --host 0.0.0.0 --port ${PORT}"]
