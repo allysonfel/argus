@@ -42,6 +42,7 @@ type Props = {
   marcadores?: Marcador[];
   mostrarCameras?: boolean;
   lojaDestacada?: string;
+  aoClicarZona?: (id: string) => void;
 };
 
 function textoValor(v: number, f: Props['formatarValor']): string {
@@ -50,7 +51,7 @@ function textoValor(v: number, f: Props['formatarValor']): string {
   return `${v.toFixed(1)} passagens/dia por 1.000 px²`;
 }
 
-export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'densidade', destaque = [], selecionada, linkZona, setas = [], marcadores = [], mostrarCameras, lojaDestacada }: Props) {
+export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'densidade', destaque = [], selecionada, linkZona, setas = [], marcadores = [], mostrarCameras, lojaDestacada, aoClicarZona }: Props) {
   const [hover, setHover] = useState<{ x: number; y: number; texto: string[] } | null>(null);
   const zonas = ZONAS.filter((z) => z.andar === andar);
   const vals = zonas.map((z) => valores?.[z.id] ?? 0);
@@ -103,7 +104,8 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
               fill={cor(z.id)}
               stroke={z.id === selecionada ? 'var(--viz-selecao)' : destaque.includes(z.id) ? '#d03b3b' : 'var(--viz-fundo)'}
               strokeWidth={z.id === selecionada || destaque.includes(z.id) ? 4 : 2}
-              className={linkZona ? 'cursor-pointer' : undefined}
+              className={linkZona || aoClicarZona ? 'cursor-pointer' : undefined}
+              onClick={aoClicarZona ? () => aoClicarZona(z.id) : undefined}
               onMouseMove={(e) => {
                 const svg = (e.target as SVGElement).ownerSVGElement!.getBoundingClientRect();
                 setHover({ x: e.clientX - svg.left, y: e.clientY - svg.top, texto: [z.nome, v !== undefined ? textoValor(v, formatarValor) : z.corredor] });

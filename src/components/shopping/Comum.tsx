@@ -2,22 +2,12 @@ import type { ReactNode } from 'react';
 import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/cn';
 
-export function SeloDemo() {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-outline px-2.5 py-0.5 text-xs font-semibold text-on-surface-variant" title="Números gerados para demonstração. Serão substituídos pelos dados das câmeras.">
-      <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-warning)]" />
-      Dados de demonstração
-    </span>
-  );
-}
-
-export function TituloPagina({ titulo, descricao, demo = true, children }: { titulo: string; descricao?: string; demo?: boolean; children?: ReactNode }) {
+export function TituloPagina({ titulo, descricao, children }: { titulo: string; descricao?: string; children?: ReactNode }) {
   return (
     <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
       <div className="min-w-0">
         <div className="mb-1 flex flex-wrap items-center gap-3">
           <h1 className="text-[28px] font-bold leading-tight text-on-surface">{titulo}</h1>
-          {demo && <SeloDemo />}
         </div>
         {descricao && <p className="mt-1 max-w-3xl text-sm leading-relaxed text-on-surface-variant">{descricao}</p>}
       </div>
@@ -78,6 +68,17 @@ export function Tabela({ cabecalho, linhas, alinharDireita = [] }: { cabecalho: 
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/** Número grande com rótulo (indicadores dentro de uma seção). */
+export function Numero({ rotulo, valor, detalhe }: { rotulo: string; valor: ReactNode; detalhe?: ReactNode }) {
+  return (
+    <div>
+      <p className="text-xs text-on-surface-variant">{rotulo}</p>
+      <p className="text-2xl font-semibold tabular-nums text-on-surface">{valor}</p>
+      {detalhe && <p className="text-[11px] text-on-surface-variant">{detalhe}</p>}
     </div>
   );
 }

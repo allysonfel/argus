@@ -14,7 +14,7 @@ export const HORA_FECHA = 22;
 export const HORAS = Array.from({ length: HORA_FECHA - HORA_ABRE }, (_, i) => HORA_ABRE + i);
 export const INICIO_HISTORICO = '2025-01-01';
 
-const PERFIL_HORA: Record<number, number> = { 10: 0.35, 11: 0.55, 12: 0.85, 13: 0.9, 14: 0.7, 15: 0.7, 16: 0.8, 17: 0.95, 18: 1.0, 19: 1.0, 20: 0.85, 21: 0.55 };
+export const PERFIL_HORA: Record<number, number> = { 10: 0.35, 11: 0.55, 12: 0.85, 13: 0.9, 14: 0.7, 15: 0.7, 16: 0.8, 17: 0.95, 18: 1.0, 19: 1.0, 20: 0.85, 21: 0.55 };
 // 0 = domingo
 const FATOR_DIA_SEMANA = [1.2, 0.75, 0.8, 0.85, 0.9, 1.1, 1.4];
 const FATOR_MES = [0.9, 0.85, 0.9, 0.92, 1.0, 1.1, 1.05, 0.95, 0.92, 1.0, 1.05, 1.3];

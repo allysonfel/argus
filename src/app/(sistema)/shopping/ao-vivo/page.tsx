@@ -8,7 +8,6 @@ export default function AoVivoPage() {
     <div>
       <TituloPagina
         titulo="Câmeras ao vivo"
-        demo={false}
         descricao="Todas as câmeras do shopping num só lugar. Filtre por piso, escolha quantas ver por tela e clique numa câmera para ver em detalhe, com pessoas, rastros, linhas de contagem e zonas desenhados pelo motor de visão. Os números são estimativas do sistema."
       />
       {/* useSearchParams (câmera aberta na URL) pede um limite de Suspense. */}

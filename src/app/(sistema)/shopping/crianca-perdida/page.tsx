@@ -1,7 +1,7 @@
-import { TituloPagina, Secao } from '@/components/shopping/Comum';
-import { BuscaCrianca } from '@/components/shopping/BuscaCrianca';
+import { TituloPagina } from '@/components/shopping/Comum';
+import { CasoCrianca } from '@/components/shopping/casos/CasoCrianca';
+import { URL_MOTOR } from '@/lib/shopping/casos';
 import { exigirSessao } from '@/lib/sessaoServidor';
-import { descritoresRecentes } from '@/lib/shopping/seguranca';
 
 export default async function CriancaPerdidaPage() {
   const sessao = await exigirSessao();
@@ -9,13 +9,9 @@ export default async function CriancaPerdidaPage() {
     <div>
       <TituloPagina
         titulo="Busca de criança perdida"
-        descricao="Descreva a roupa e o sistema procura, nas câmeras de corredor das últimas 2 horas, pessoas com cores e estatura compatíveis. Ele sugere candidatos; quem confirma é a equipe de Segurança."
+        descricao="Descreva a criança como a família descreveria (cor da roupa e se é criança). O sistema procura em todas as câmeras pessoas compatíveis e mostra o recorte, a câmera e o momento no vídeo. Ele sugere candidatos; quem confirma é a equipe de Segurança."
       />
-
-      <Secao titulo="Buscar" descricao="Exemplos: “menino de camisa azul e bermuda preta”, “menina de vestido rosa”, “criança de blusa amarela”" >
-        <BuscaCrianca pessoas={descritoresRecentes()} usuario={sessao.nome} />
-      </Secao>
-
+      <CasoCrianca urlMotor={URL_MOTOR} usuario={sessao.nome} />
     </div>
   );
 }

@@ -74,7 +74,7 @@ export function PergunteArgus() {
               </span>
               <div>
                 <p className="text-sm font-semibold text-on-surface">Pergunte ao Argus</p>
-                <p className="text-[11px] text-on-surface-variant">Demonstração · respostas a partir dos dados de demonstração</p>
+                <p className="text-[11px] text-on-surface-variant">Respostas a partir dos dados do shopping</p>
               </div>
             </div>
             <button onClick={() => setAberto(false)} className="rounded-sm px-2 py-1 text-sm text-on-surface-variant hover:bg-surface-container-low" aria-label="Fechar">

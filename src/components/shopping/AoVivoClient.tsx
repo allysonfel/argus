@@ -108,23 +108,12 @@ export function AoVivoClient({ urlMotor }: { urlMotor: string }) {
   const totalPessoas = online.reduce((soma, c) => soma + pessoasNaImagem(c), 0);
   const totalPassagens = online.reduce((soma, c) => soma + c.stats.linhas.reduce((x, l) => x + l.entradas + l.saidas, 0), 0);
   const maisMovimentada = online.reduce<CameraMotor | null>((m, c) => (!m || pessoasNaImagem(c) > pessoasNaImagem(m) ? c : m), null);
-  const temDemo = cameras.some((c) => c.credito);
 
   const emFoco = cameraAberta ? cameras.find((c) => c.id === cameraAberta) : undefined;
   const listaFoco = emFoco ? (filtrarCameras(cameras, filtros).some((c) => c.id === emFoco.id) ? filtrarCameras(cameras, filtros) : cameras) : [];
 
   return (
     <div className="flex flex-col gap-5">
-      {temDemo && (
-        <div className="flex items-start gap-3 rounded border border-dashed border-outline bg-surface px-4 py-3 text-sm text-on-surface-variant">
-          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[var(--color-warning)]" />
-          <p>
-            <strong className="text-on-surface">Vídeos de demonstração.</strong> Enquanto as câmeras do Shopping Caruaru não estão conectadas, o
-            motor analisa gravações reais de outros shoppings. Detecção, rastreio e contagens são feitos ao vivo pelo motor de visão, como
-            será com as câmeras do shopping.
-          </p>
-        </div>
-      )}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Pessoas nas câmeras agora" value={totalPessoas} hint="Soma das imagens de todas as câmeras" tone="primary" />

@@ -25,7 +25,7 @@ export default function CamerasPage() {
     <div>
       <TituloPagina
         titulo="Câmeras e saúde do sistema"
-        descricao={`Situação de cada câmera de corredor usada pelo Argus. Nesta demonstração são ${cams.length} câmeras; o shopping tem cerca de 250, ligadas aos NVRs Intelbras e acessadas só pela VPN (o RTSP nunca fica exposto na internet).`}
+        descricao={`Situação de cada câmera de corredor usada pelo Argus. ${cams.length} câmeras cadastradas; o shopping tem cerca de 250, ligadas aos NVRs Intelbras e acessadas só pela VPN (o RTSP nunca fica exposto na internet).`}
       >
         <Link href="/shopping/ao-vivo" className="inline-flex h-8 items-center rounded-sm border border-outline-variant bg-surface px-3 text-xs font-medium text-on-surface hover:bg-surface-container-low">
           Ver câmeras ao vivo
