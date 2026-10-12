@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { TituloPagina } from '@/components/shopping/Comum';
 import { AoVivoClient } from '@/components/shopping/AoVivoClient';
 
@@ -8,9 +9,12 @@ export default function AoVivoPage() {
       <TituloPagina
         titulo="Câmeras ao vivo"
         demo={false}
-        descricao="Vídeo na velocidade original, com a análise de pessoas desenhada por cima (motor de visão real). Os números são estimativas do sistema."
+        descricao="Todas as câmeras do shopping num só lugar. Filtre por piso, escolha quantas ver por tela e clique numa câmera para ver em detalhe, com pessoas, rastros, linhas de contagem e zonas desenhados pelo motor de visão. Os números são estimativas do sistema."
       />
-      <AoVivoClient urlMotor={urlMotor} />
+      {/* useSearchParams (câmera aberta na URL) pede um limite de Suspense. */}
+      <Suspense fallback={<div className="min-h-64" />}>
+        <AoVivoClient urlMotor={urlMotor} />
+      </Suspense>
     </div>
   );
 }
