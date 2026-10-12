@@ -57,7 +57,8 @@ def _amostrar(video: Path, fps_analise: float):
 
 def detectar_video(video: Path, fps_analise: float, detector: DetectorPessoas | None = None, motor: MotorConfig | None = None) -> tuple[list[QuadroDetectado], tuple[int, int]]:
     motor = motor or MotorConfig.carregar()
-    chave = hashlib.sha1(f"{video.resolve()}|{video.stat().st_size}|{video.stat().st_mtime}|{fps_analise}|{motor.modelo}".encode()).hexdigest()[:16]
+    # "v2": as detecções passaram a levar a aparência (data["aparencia"]).
+    chave = hashlib.sha1(f"v2|{video.resolve()}|{video.stat().st_size}|{video.stat().st_mtime}|{fps_analise}|{motor.modelo}".encode()).hexdigest()[:16]
     cache = CACHE_DIR / f"{video.stem}-{chave}.pkl"
     if cache.exists():
         return pickle.loads(cache.read_bytes())
@@ -76,14 +77,17 @@ def detectar_video(video: Path, fps_analise: float, detector: DetectorPessoas | 
     return resultado
 
 
-def rodar(quadros: list[QuadroDetectado], tamanho: tuple[int, int], cfg: TrackerConfig, fps_analise: float, linhas: list[Linha] | None = None, ao_rastrear=None) -> dict:
+def rodar(quadros: list[QuadroDetectado], tamanho: tuple[int, int], cfg: TrackerConfig, fps_analise: float, linhas: list[Linha] | None = None, ao_rastrear=None, video: Path | None = None, extrator=None) -> dict:
     """Roda tracking + regras sobre detecções já prontas. `ao_rastrear`
-    (opcional) recebe (QuadroDetectado, rastreadas) a cada quadro."""
+    (opcional) recebe (QuadroDetectado, rastreadas) a cada quadro. Com
+    `video` + `extrator` (reid.ExtratorReid), relê os quadros e liga o Re-ID."""
     camera = CameraConfig(id="offline", nome="offline", fonte="", fps_analise=fps_analise, linhas=linhas or [])
-    regras = RegrasCamera(camera, cfg, fps_analise)
+    regras = RegrasCamera(camera, cfg, fps_analise, extrator=extrator)
+    imagens = _quadros_por_indice(video, {q.indice for q in quadros}) if video is not None and extrator is not None else None
     for q in quadros:
         dets = q.deteccoes[q.deteccoes.confidence >= cfg.det_conf_threshold] if len(q.deteccoes) else q.deteccoes
-        rastreadas = regras.atualizar(dets, q.ts, *tamanho)
+        imagem = next(imagens) if imagens is not None else None
+        rastreadas = regras.atualizar(dets, q.ts, *tamanho, imagem=imagem)
         if ao_rastrear:
             ao_rastrear(q, rastreadas)
 
@@ -95,6 +99,20 @@ def rodar(quadros: list[QuadroDetectado], tamanho: tuple[int, int], cfg: Tracker
         "linhas": stats["linhas"],
         "duracoes_s": [round(d, 2) for d in duracoes],
     }
+
+
+def _quadros_por_indice(video: Path, indices: set[int]):
+    """Gera, em ordem, as imagens dos quadros pedidos (mesmos índices de _amostrar)."""
+    cap = cv2.VideoCapture(str(video))
+    i = 0
+    while True:
+        ok, quadro = cap.read()
+        if not ok:
+            break
+        if i in indices:
+            yield quadro
+        i += 1
+    cap.release()
 
 
 def histograma_duracoes(duracoes: list[float]) -> dict[str, int]:
