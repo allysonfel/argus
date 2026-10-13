@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import { exigirSessao } from '@/lib/sessaoServidor';
 import { SidebarShopping, MenuMovelShopping } from '@/components/shopping/SidebarShopping';
 import { PergunteArgus } from '@/components/shopping/PergunteArgus';
 import { BotaoSimulacao } from '@/components/shopping/AlternarSimulacao';
+import { AberturaEntrada } from '@/components/shopping/AberturaEntrada';
 import { obterConfiguracoes } from '@/lib/shopping/configuracoes';
 import { podeVer } from '@/lib/shopping/permissoes';
 import { perguntasHoje } from '@/lib/auditoria';
@@ -33,6 +35,7 @@ export default async function ShoppingLayout({ children }: { children: React.Rea
       <main className="pb-24 lg:pl-64 print:pl-0">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-8 lg:py-8">{children}</div>
       </main>
+      {(await cookies()).has('argus-abertura') && <AberturaEntrada nome={sessao.nome} />}
       {cfg.pergunte_ativo && podeVer(sessao, 'pergunte') && <PergunteArgus limiteDia={cfg.pergunte_limite_dia} usadasHoje={await perguntasHoje(sessao.id, cfg.fuso)} />}
     </div>
   );
