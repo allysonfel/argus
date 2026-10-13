@@ -9,6 +9,7 @@ import { formatarNumero } from '@/lib/shopping/demo';
 import { ENTRADAS, areaPorId, centro, zonaPorId, type Andar } from '@/lib/shopping/planta';
 import { sementeDoDia, simular } from '@/lib/shopping/simulacao';
 import { ControlesRelogio, MapaSimulacao, SeletorAndar, useRelogio } from './MapaSimulacao';
+import { ResumoRotasPeriodo } from './ResumoRotasPeriodo';
 
 const nome = (id: string) => areaPorId(id)?.nome ?? ENTRADAS.find((e) => e.id === id)?.nome ?? (id === 'escadas' ? 'Escadas rolantes' : id);
 
@@ -129,6 +130,8 @@ export function RotasSimuladas() {
           </ol>
         </Secao>
       </div>
+
+      <ResumoRotasPeriodo fim={relogio.dia} />
 
       <Secao titulo="De onde vêm e para onde vão (diagrama de Sankey)" descricao="Da entrada até a 2ª área visitada · pessoas no dia">
         <GraficoSankey nos={nos} ligacoes={ligacoes} altura={460} />

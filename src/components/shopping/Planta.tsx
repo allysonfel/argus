@@ -49,6 +49,7 @@ export function corDivergente(indice: number): string {
 
 // etiqueta: número curto desenhado no começo da seta (ex.: "1.234").
 export type Seta = { de: [number, number]; para: [number, number]; valor: number; rotulo?: string; etiqueta?: string; cor?: string };
+export type EstiloMapa = 'planta' | 'mapa' | 'hibrido';
 export type Marcador = { x: number; y: number; rotulo: string; tom?: 'alerta' | 'info' | 'ok' };
 
 type Props = {
@@ -64,8 +65,8 @@ type Props = {
   mostrarCameras?: boolean;
   lojaDestacada?: string;
   aoClicarZona?: (id: string) => void;
-  /** 'oficial' = imagem da planta do shopping; 'esboco' = desenho limpo no estilo do sistema. */
-  estilo?: 'oficial' | 'esboco';
+  /** Visão do mapa: 'planta' = imagem oficial; 'mapa' = desenho limpo; 'hibrido' = imagem + corredores desenhados por cima. */
+  estilo?: EstiloMapa;
 };
 
 function textoValor(v: number, f: Props['formatarValor']): string {
@@ -74,7 +75,26 @@ function textoValor(v: number, f: Props['formatarValor']): string {
   return `${v.toFixed(1)} passagens/dia por 1.000 px²`;
 }
 
-export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'densidade', destaque = [], selecionada, linkZona, setas = [], marcadores = [], mostrarCameras, lojaDestacada, aoClicarZona, estilo = 'oficial' }: Props) {
+/** Nome das âncoras no meio da loja onde elas ficam. */
+function NomesAncoras({ andar, halo }: { andar: Andar; halo?: boolean }) {
+  return (
+    <>
+      {LOJAS.filter((l) => l.andar === andar && (l.atracao > 1 || l.nome === 'Centerplex')).map((l) => {
+        const c: [number, number] = [l.rect.x + l.rect.w / 2, l.rect.y + l.rect.h / 2];
+        const poli = ESBOCO[andar].lojas.find((p) => dentroDe(c, p));
+        const [x, y] = poli ? centroide(poli) : c;
+        const nome = l.nome.length > 22 ? l.nome.split(' · ')[0] : l.nome;
+        return (
+          <text key={l.id} x={x} y={y + 3} textAnchor="middle" paintOrder="stroke" stroke={halo ? '#ffffff' : 'none'} strokeWidth={halo ? 3 : 0} className={`pointer-events-none text-[9px] font-semibold uppercase tracking-wide ${halo ? 'fill-slate-800' : 'fill-[var(--viz-texto)]'}`}>
+            {nome}
+          </text>
+        );
+      })}
+    </>
+  );
+}
+
+export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'densidade', destaque = [], selecionada, linkZona, setas = [], marcadores = [], mostrarCameras, lojaDestacada, aoClicarZona, estilo = 'planta' }: Props) {
   const [hover, setHover] = useState<{ x: number; y: number; texto: string[] } | null>(null);
   const zonas = ZONAS.filter((z) => z.andar === andar);
   const vals = zonas.map((z) => valores?.[z.id] ?? 0);
@@ -93,11 +113,21 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
       <svg viewBox="0 0 1000 560" className="block h-auto w-full select-none" role="img" aria-label={`Planta do ${andar === 'T' ? 'Térreo' : 'Piso 1'}`}>
         <rect x="0" y="0" width="1000" height="560" fill="var(--viz-fundo)" rx="6" />
 
-        {estilo === 'oficial' ? (
+        {estilo !== 'mapa' && (
           /* Planta oficial do shopping de fundo (as lojas já vêm com nome nela) */
           <image href={FUNDO[andar].src} x={FUNDO[andar].x} y={FUNDO[andar].y} width={FUNDO[andar].w} height={FUNDO[andar].h} preserveAspectRatio="none" />
-        ) : (
-          /* Esboço: prédio, lojas, corredores e estacionamento extraídos da planta oficial */
+        )}
+        {estilo === 'hibrido' && (
+          /* Híbrido: corredores e nomes das âncoras desenhados por cima da imagem */
+          <g pointerEvents="none">
+            {ESBOCO[andar].corredores.map((p, i) => (
+              <path key={`h${i}`} d={caminho(p)} fill="rgba(37, 99, 235, 0.10)" stroke="rgba(37, 99, 235, 0.65)" strokeWidth="1.4" fillRule="evenodd" />
+            ))}
+            <NomesAncoras andar={andar} halo />
+          </g>
+        )}
+        {estilo === 'mapa' && (
+          /* Mapa: prédio, lojas, corredores e estacionamento extraídos da planta oficial */
           <g>
             <defs>
               <pattern id="estac" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -117,18 +147,7 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
             {ESBOCO[andar].corredores.map((p, i) => (
               <path key={`r${i}`} d={caminho(p)} fill="var(--viz-fundo)" stroke="var(--viz-linha)" strokeWidth="0.8" fillRule="evenodd" />
             ))}
-            {/* Nome das âncoras no meio da loja onde elas ficam */}
-            {LOJAS.filter((l) => l.andar === andar && (l.atracao > 1 || l.nome === 'Centerplex')).map((l) => {
-              const c: [number, number] = [l.rect.x + l.rect.w / 2, l.rect.y + l.rect.h / 2];
-              const poli = ESBOCO[andar].lojas.find((p) => dentroDe(c, p));
-              const [x, y] = poli ? centroide(poli) : c;
-              const nome = l.nome.length > 22 ? l.nome.split(' · ')[0] : l.nome;
-              return (
-                <text key={l.id} x={x} y={y + 3} textAnchor="middle" className="pointer-events-none fill-[var(--viz-texto)] text-[9px] font-semibold uppercase tracking-wide">
-                  {nome}
-                </text>
-              );
-            })}
+            <NomesAncoras andar={andar} />
           </g>
         )}
         {lojaDestacada &&
@@ -146,9 +165,9 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
               width={z.rect.w}
               height={z.rect.h}
               rx="3"
-              fill={valores ? cor(z.id) : estilo === 'esboco' ? 'var(--viz-corredor)' : 'rgba(37, 99, 235, 0.08)'}
-              fillOpacity={valores ? (estilo === 'esboco' ? 1 : 0.78) : 1}
-              stroke={z.id === selecionada ? 'var(--viz-selecao)' : destaque.includes(z.id) ? '#d03b3b' : estilo === 'esboco' ? 'var(--viz-corredor)' : 'rgba(37, 99, 235, 0.35)'}
+              fill={valores ? cor(z.id) : estilo === 'mapa' ? 'var(--viz-corredor)' : 'rgba(37, 99, 235, 0.08)'}
+              fillOpacity={valores ? (estilo === 'mapa' ? 1 : 0.78) : 1}
+              stroke={z.id === selecionada ? 'var(--viz-selecao)' : destaque.includes(z.id) ? '#d03b3b' : estilo === 'mapa' ? 'var(--viz-corredor)' : 'rgba(37, 99, 235, 0.35)'}
               strokeWidth={z.id === selecionada || destaque.includes(z.id) ? 3 : 1}
               className={linkZona || aoClicarZona ? 'cursor-pointer' : undefined}
               onClick={aoClicarZona ? () => aoClicarZona(z.id) : undefined}

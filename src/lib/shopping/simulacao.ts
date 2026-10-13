@@ -148,8 +148,9 @@ export function sementeDoDia(iso: string): number {
   return h >>> 0;
 }
 
-/** `dia` (opcional) escala os pontos pelo movimento daquele dia; sem ele, usa ontem. */
-export function simular(acoes: Acao[] = [], semente = 20261012, dia?: string): Simulacao {
+/** `dia` (opcional) escala os pontos pelo movimento daquele dia; sem ele, usa ontem.
+ * `soRotas` pula as amostras de posição (bem mais rápido; serve para resumir rotas). */
+export function simular(acoes: Acao[] = [], semente = 20261012, dia?: string, soRotas = false): Simulacao {
   // Uma sequência aleatória por visitante: simulando uma ação, só muda o
   // que a ação afeta (o resto do dia fica igual, dá pra comparar).
   let rnd = mulberry32(semente);
@@ -260,7 +261,7 @@ export function simular(acoes: Acao[] = [], semente = 20261012, dia?: string): S
   const as: number[] = [];
   const xs: number[] = [];
   const ys: number[] = [];
-  for (const a of agentes)
+  for (const a of soRotas ? [] : agentes)
     for (const s of a.segs) {
       if (!s.vis) continue;
       for (let k = Math.ceil(s.t0 / PASSO_AMOSTRA) * PASSO_AMOSTRA; k < s.t1; k += PASSO_AMOSTRA) {

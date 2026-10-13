@@ -43,7 +43,7 @@ export function Variacao({ atual, anterior, sufixo = 'vs. período anterior' }: 
   );
 }
 
-export function Tabela({ cabecalho, linhas, alinharDireita = [] }: { cabecalho: string[]; linhas: ReactNode[][]; alinharDireita?: number[] }) {
+export function Tabela({ cabecalho, linhas, alinharDireita = [], aoClicarLinha }: { cabecalho: string[]; linhas: ReactNode[][]; alinharDireita?: number[]; aoClicarLinha?: (i: number) => void }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -58,7 +58,7 @@ export function Tabela({ cabecalho, linhas, alinharDireita = [] }: { cabecalho: 
         </thead>
         <tbody>
           {linhas.map((l, i) => (
-            <tr key={i} className="border-b border-outline-variant/60 transition-colors last:border-0 hover:bg-surface-container-low/70">
+            <tr key={i} onClick={aoClicarLinha && (() => aoClicarLinha(i))} className={cn('border-b border-outline-variant/60 transition-colors last:border-0 hover:bg-surface-container-low/70', aoClicarLinha && 'cursor-pointer')}>
               {l.map((c, j) => (
                 <td key={j} className={cn('px-2 py-2 text-on-surface', alinharDireita.includes(j) && 'text-right tabular-nums')}>
                   {c}

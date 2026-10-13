@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Secao, Tabela } from '@/components/shopping/Comum';
 import { partesDoNome } from '@/components/shopping/cameras/tipos';
@@ -10,6 +11,7 @@ type Cam = { id: string; nome: string; online: boolean; erro: string | null; fps
 
 // Câmeras e saúde REAL: o estado de cada câmera direto do motor de visão.
 export function SaudeCamerasReal({ urlMotor }: { urlMotor: string }) {
+  const router = useRouter();
   const [cams, setCams] = useState<Cam[] | null>(null);
   const [erro, setErro] = useState(false);
   useEffect(() => {
@@ -44,12 +46,13 @@ export function SaudeCamerasReal({ urlMotor }: { urlMotor: string }) {
         <StatCard label="Sendo assistidas agora" value={abertas.length} hint="Analisadas no ritmo cheio (3 por segundo)" />
         <StatCard label="Tempo de análise (média)" value={`${Math.round(inferencia)} ms`} hint="Por imagem, no servidor (CPU)" />
       </div>
-      <Secao titulo="Cada câmera" descricao={`Lido do motor de visão a cada 3 s${erro ? ' · última leitura falhou' : ''}. As câmeras que ninguém está assistindo analisam 1 imagem a cada 10 s para poupar o servidor.`}>
+      <Secao titulo="Cada câmera" descricao={`Lido do motor de visão a cada 3 s${erro ? ' · última leitura falhou' : ''}. As câmeras que ninguém está assistindo analisam 1 imagem a cada 10 s para poupar o servidor. Clique numa câmera para abrir ao vivo.`}>
         <Tabela
           cabecalho={['Câmera', 'Situação', 'Imagem', 'Análises/s', 'Tempo de análise', 'Pessoas agora']}
           alinharDireita={[3, 4, 5]}
+          aoClicarLinha={(i) => router.push(`/shopping/ao-vivo?camera=${encodeURIComponent(cams[i].id)}`)}
           linhas={cams.map((c) => [
-            <span key="n" className="text-sm">
+            <span key="n" className="text-sm font-medium text-primary hover:underline">
               {partesDoNome(c.nome).codigo} {partesDoNome(c.nome).titulo}
             </span>,
             c.online ? <Badge key="s" variant="success">Online</Badge> : <Badge key="s" variant="error">{c.erro ? 'Erro' : 'Offline'}</Badge>,
