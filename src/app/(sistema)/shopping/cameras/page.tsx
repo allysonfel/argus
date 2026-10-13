@@ -1,3 +1,4 @@
+import { exigirAba } from '@/lib/sessaoServidor';
 import Link from 'next/link';
 import { TituloPagina, Secao, Tabela } from '@/components/shopping/Comum';
 import { CadastroCamera } from '@/components/shopping/CadastroCamera';
@@ -13,7 +14,8 @@ function tempo(s: number) {
   return `há ${Math.floor(s / 3600)} h ${Math.floor((s % 3600) / 60)} min`;
 }
 
-export default function CamerasPage() {
+export default async function CamerasPage() {
+  await exigirAba('cameras');
   const cams = saudeCameras();
   const online = cams.filter((c) => c.estado === 'online');
   const problemas = cams.filter((c) => c.estado !== 'online');

@@ -1,6 +1,9 @@
 'use server';
 
-import { exigirSessao } from '@/lib/sessaoServidor';
+import { perguntasHoje, registrarAuditoria } from '@/lib/auditoria';
+import { obterConfiguracoes } from '@/lib/shopping/configuracoes';
+import { ABAS, podeVer, type AbaId } from '@/lib/shopping/permissoes';
+import { exigirAbaAcao } from '@/lib/sessaoServidor';
 import {
   agoraDemo,
   corredores,
@@ -24,6 +27,8 @@ import {
 
 export type RespostaArgus = {
   texto: string;
+  /** Perguntas que o usuário já fez hoje (limite contado no servidor). */
+  usadasHoje?: number;
   periodo?: string;
   grafico?: { tipo: 'barras' | 'linhas'; x: string; formatoX?: 'hora' | 'data'; dados: Record<string, string | number | null>[]; serie: string };
 };
@@ -42,13 +47,42 @@ function totaisCorredor(inicio: string, fim: string): Record<string, number> {
   }, {});
 }
 
+// Cada tema de resposta pertence a uma aba: o chat só responde o que o
+// usuário poderia ver na tela.
+function temaDa(p: string): AbaId | null {
+  if (/zona.* mort|vazi|pouco movimento|parad/.test(p)) return 'zonas-mortas';
+  if (/cresc|aument|caiu|queda|diminu/.test(p) || MESES.some((m) => p.includes(normalizar(m)))) return 'comparativo';
+  if (/pico|horario|hora .*mais|mais cheio|lotad|agora|neste momento|quantas pessoas|ocupac|entrad|entrou|entraram|visitante|movimento|fluxo|corredor|mais movimentad|ranking|melhor|pior/.test(p)) return 'visao-geral';
+  return null;
+}
+
 export async function perguntarArgus(pergunta: string): Promise<RespostaArgus> {
-  await exigirSessao();
+  let sessao;
+  try {
+    sessao = await exigirAbaAcao('pergunte');
+  } catch (e) {
+    return { texto: e instanceof Error ? e.message : 'Sem permissão.' };
+  }
+  const cfg = await obterConfiguracoes(sessao.empresaId);
+  if (!cfg.pergunte_ativo) return { texto: 'O Pergunte ao Argus está desligado nas configurações.' };
+  const usadas = await perguntasHoje(sessao.id, cfg.fuso);
+  if (usadas >= cfg.pergunte_limite_dia) return { texto: `Você já fez ${cfg.pergunte_limite_dia} perguntas hoje, o limite diário. Amanhã libera de novo.`, usadasHoje: usadas };
+  await registrarAuditoria({ empresaId: sessao.empresaId, usuarioId: sessao.id, acao: 'pergunte', detalhes: { pergunta: pergunta.slice(0, 300) } });
+  const resposta = await responder(pergunta, sessao);
+  return { ...resposta, usadasHoje: usadas + 1 };
+}
+
+async function responder(pergunta: string, sessao: { adminGeral: boolean; abas: string[] }): Promise<RespostaArgus> {
   const p = normalizar(pergunta);
   const { data: hoje } = agoraDemo();
 
   if (/crianca|seguranca|alarme|intrus|restrit|camera.*grav|rosto/.test(p)) {
     return { texto: 'Não consigo responder sobre segurança, buscas ou imagens pelo chat. Esses dados ficam restritos ao perfil Segurança, nas telas próprias.' };
+  }
+
+  const tema = temaDa(p);
+  if (tema && !podeVer(sessao, tema)) {
+    return { texto: `Essa pergunta usa dados da aba "${ABAS.find((a) => a.id === tema)!.nome}", que não está liberada para o seu usuário.` };
   }
 
   if (/zona.* mort|vazi|pouco movimento|parad/.test(p)) {

@@ -1,3 +1,4 @@
+import { exigirAba } from '@/lib/sessaoServidor';
 import Link from 'next/link';
 import { StatCard } from '@/components/ui/StatCard';
 import { TituloPagina, Secao, Variacao, Tabela } from '@/components/shopping/Comum';
@@ -18,7 +19,8 @@ import {
   formatarData,
 } from '@/lib/shopping/demo';
 
-export default function VisaoGeralPage() {
+export default async function VisaoGeralPage() {
+  await exigirAba('visao-geral');
   const agora = agoraDemo();
   const hoje = agora.data;
   const semanaPassada = somarDias(hoje, -7);

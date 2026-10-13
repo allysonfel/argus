@@ -226,3 +226,56 @@ CREATE INDEX IF NOT EXISTS idx_uso_digital_empresa ON uso_digital_eventos(empres
 -- mandou o evento sem precisar de sessão de navegador.
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS chave_api TEXT UNIQUE;
 ALTER TABLE colaboradores ADD COLUMN IF NOT EXISTS codigo_agente TEXT UNIQUE;
+
+-- ============================================================
+-- USUÁRIOS DO SHOPPING — permissões por aba, troca de senha obrigatória,
+-- bloqueio por tentativas erradas. Só o administrador geral gerencia.
+-- ============================================================
+
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS telefone TEXT;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS admin_geral BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS abas TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS perfil_modelo TEXT;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS trocar_senha BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS tentativas_falhas INT NOT NULL DEFAULT 0;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS bloqueado_ate TIMESTAMPTZ;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS ultimo_acesso TIMESTAMPTZ;
+
+-- Instalação que já existia: o admin de exemplo vira administrador geral
+-- (sem isso ninguém conseguiria gerenciar usuários depois da atualização).
+UPDATE usuarios SET admin_geral = true
+WHERE username = 'admin' AND role = 'ADMIN' AND NOT EXISTS (SELECT 1 FROM usuarios WHERE admin_geral);
+
+CREATE TABLE IF NOT EXISTS auditoria (
+  id               SERIAL PRIMARY KEY,
+  empresa_id       INT REFERENCES empresas(id) ON DELETE CASCADE,
+  usuario_id       INT REFERENCES usuarios(id) ON DELETE SET NULL,  -- quem fez
+  alvo_usuario_id  INT REFERENCES usuarios(id) ON DELETE SET NULL,  -- em quem
+  acao             TEXT NOT NULL,
+  detalhes         JSONB,
+  criado_em        TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_auditoria_empresa ON auditoria(empresa_id, criado_em DESC);
+
+CREATE TABLE IF NOT EXISTS configuracoes_shopping (
+  empresa_id                    INT PRIMARY KEY REFERENCES empresas(id) ON DELETE CASCADE,
+  nome                          TEXT NOT NULL DEFAULT 'Caruaru Shopping',
+  cidade                        TEXT NOT NULL DEFAULT 'Caruaru · PE',
+  logo                          TEXT,          -- imagem em data URL (pequena)
+  fuso                          TEXT NOT NULL DEFAULT 'America/Recife',
+  abre                          TEXT NOT NULL DEFAULT '10:00',
+  fecha                         TEXT NOT NULL DEFAULT '22:00',
+  domingo_abre                  TEXT NOT NULL DEFAULT '12:00',
+  domingo_fecha                 TEXT NOT NULL DEFAULT '20:00',
+  retencao_evidencias_dias      INT NOT NULL DEFAULT 30,
+  retencao_busca_crianca_horas  INT NOT NULL DEFAULT 24,
+  pergunte_ativo                BOOLEAN NOT NULL DEFAULT true,
+  pergunte_limite_dia           INT NOT NULL DEFAULT 30,
+  deteccao_confianca            REAL NOT NULL DEFAULT 0.4,
+  deteccao_fps                  REAL NOT NULL DEFAULT 3,
+  sessao_horas                  INT NOT NULL DEFAULT 12,
+  max_tentativas                INT NOT NULL DEFAULT 5,
+  bloqueio_minutos              INT NOT NULL DEFAULT 15,
+  atualizado_em                 TIMESTAMPTZ NOT NULL DEFAULT now()
+);

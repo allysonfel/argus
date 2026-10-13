@@ -1,9 +1,12 @@
+import { redirect } from 'next/navigation';
 import { exigirSessao } from '@/lib/sessaoServidor';
 import { Sidebar } from '@/components/admin/Sidebar';
 import { MobileNav } from '@/components/admin/MobileNav';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const sessao = await exigirSessao();
+  // Usuários criados no módulo do shopping não veem o painel de ponto.
+  if (sessao.role === 'SHOPPING') redirect('/shopping');
 
   return (
     <div className="min-h-screen bg-surface-dim">

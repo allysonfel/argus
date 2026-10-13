@@ -7,37 +7,27 @@ import { GraficoBarras, GraficoLinhas } from './Graficos';
 import { cn } from '@/lib/cn';
 
 const SUGESTOES = ['Qual corredor mais cresceu em outubro?', 'Qual o horário de pico hoje?', 'Quantas pessoas estão no shopping agora?', 'Quais são as zonas mortas?', 'Quantas pessoas entraram hoje?'];
-const LIMITE_DIA = 30;
-const CHAVE_USO = 'argus-perguntas-uso';
-
 type Mensagem = { de: 'voce'; texto: string } | { de: 'argus'; resposta: RespostaArgus };
 
-function usoHoje(): number {
-  try {
-    const u = JSON.parse(localStorage.getItem(CHAVE_USO) || '{}');
-    return u.dia === new Date().toISOString().slice(0, 10) ? u.n : 0;
-  } catch {
-    return 0;
-  }
-}
-
-function registrarUso(n: number) {
-  try {
-    localStorage.setItem(CHAVE_USO, JSON.stringify({ dia: new Date().toISOString().slice(0, 10), n }));
-  } catch {
-    // sem localStorage: o limite só não persiste entre recarregamentos
-  }
-}
-
-export function PergunteArgus() {
+// O limite diário é contado no servidor (por usuário); aqui só mostramos.
+export function PergunteArgus({ limiteDia, usadasHoje }: { limiteDia: number; usadasHoje: number }) {
+  const LIMITE_DIA = limiteDia;
   const [aberto, setAberto] = useState(false);
   const [texto, setTexto] = useState('');
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
-  const [usadas, setUsadas] = useState(0);
+  const [usadas, setUsadas] = useState(usadasHoje);
   const [pensando, iniciar] = useTransition();
   const fimRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => setUsadas(usoHoje()), []);
+  // Painel montado sempre (pra animar a abertura e o fechamento).
+  const [visivel, setVisivel] = useState(false);
+  useEffect(() => {
+    if (aberto) setVisivel(true);
+    else {
+      const t = setTimeout(() => setVisivel(false), 220);
+      return () => clearTimeout(t);
+    }
+  }, [aberto]);
   useEffect(() => fimRef.current?.scrollIntoView({ behavior: 'smooth' }), [mensagens, pensando]);
 
   function enviar(pergunta: string) {
@@ -45,11 +35,9 @@ export function PergunteArgus() {
     if (!q || pensando || usadas >= LIMITE_DIA) return;
     setTexto('');
     setMensagens((m) => [...m, { de: 'voce', texto: q }]);
-    const n = usadas + 1;
-    setUsadas(n);
-    registrarUso(n);
     iniciar(async () => {
       const resposta = await perguntarArgus(q);
+      if (resposta.usadasHoje !== undefined) setUsadas(resposta.usadasHoje);
       setMensagens((m) => [...m, { de: 'argus', resposta }]);
     });
   }
@@ -60,13 +48,28 @@ export function PergunteArgus() {
         onClick={() => setAberto((a) => !a)}
         aria-label="Pergunte ao Argus"
         title="Pergunte ao Argus"
-        className="fixed bottom-5 right-5 z-50 flex print:hidden h-14 w-14 items-center justify-center rounded-full bg-primary text-on-primary shadow-lg transition-transform hover:scale-105"
+        aria-expanded={aberto}
+        className={cn(
+          'group fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-on-primary shadow-lg transition-all duration-300 ease-out hover:scale-110 hover:shadow-xl active:scale-90 print:hidden',
+          aberto && 'rotate-[360deg] shadow-xl ring-4 ring-primary/25'
+        )}
       >
-        <LogoA className={cn('h-6', pensando && 'animate-pulse')} />
+        {/* onda ao redor enquanto fechado, pra chamar atenção */}
+        {!aberto && <span className="absolute inset-0 animate-ping rounded-full bg-primary/30 [animation-duration:2.4s]" />}
+        <span className={cn('absolute transition-all duration-300', aberto ? 'scale-50 opacity-0' : 'scale-100 opacity-100')}>
+          <LogoA className={cn('h-6', pensando && 'animate-pulse')} />
+        </span>
+        <span className={cn('absolute text-xl leading-none transition-all duration-300', aberto ? 'scale-100 opacity-100' : 'scale-50 opacity-0')}>✕</span>
       </button>
 
-      {aberto && (
-        <div className="fixed bottom-24 right-5 z-50 flex h-[min(640px,calc(100vh-8rem))] w-[min(420px,calc(100vw-2.5rem))] flex-col overflow-hidden rounded border border-outline-variant bg-surface shadow-xl">
+      {visivel && (
+        <div
+          className={cn(
+            'fixed bottom-24 right-5 z-50 flex h-[min(640px,calc(100vh-8rem))] w-[min(420px,calc(100vw-2.5rem))] origin-bottom-right flex-col overflow-hidden rounded-md border border-outline-variant bg-surface shadow-2xl transition-all duration-200 ease-out',
+            aberto ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-3 scale-95 opacity-0'
+          )}
+          style={{ animation: aberto ? 'argus-abrir 220ms ease-out' : undefined }}
+        >
           <div className="flex items-center justify-between border-b border-outline-variant px-4 py-3">
             <div className="flex items-center gap-2.5">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-on-primary">

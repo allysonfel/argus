@@ -1,10 +1,10 @@
 import { TituloPagina } from '@/components/shopping/Comum';
 import { CasoCrianca } from '@/components/shopping/casos/CasoCrianca';
 import { URL_MOTOR } from '@/lib/shopping/casos';
-import { exigirSessao } from '@/lib/sessaoServidor';
+import { exigirAba } from '@/lib/sessaoServidor';
 
 export default async function CriancaPerdidaPage() {
-  const sessao = await exigirSessao();
+  const sessao = await exigirAba('crianca-perdida');
   return (
     <div>
       <TituloPagina

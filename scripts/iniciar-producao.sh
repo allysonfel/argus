@@ -11,5 +11,7 @@ else
   echo "[boot] banco já tem dado, pulando seed."
 fi
 
+npx tsx scripts/criarAdmin.ts
+
 echo "[boot] iniciando servidor..."
 exec npx next start -p "${PORT:-8080}"

@@ -1,3 +1,4 @@
+import { exigirAba } from '@/lib/sessaoServidor';
 import { TituloPagina, Secao, Tabela, Variacao } from '@/components/shopping/Comum';
 import { GraficoBarras, GraficoLinhas } from '@/components/shopping/Graficos';
 import { StatCard } from '@/components/ui/StatCard';
@@ -36,6 +37,7 @@ function janelasDataComercial(id: string, hoje: string): { a: [string, string]; 
 }
 
 export default async function ComparativoPage({ searchParams }: { searchParams: Promise<Busca> }) {
+  await exigirAba('comparativo');
   const sp = await searchParams;
   const hoje = agoraDemo().data;
   const escopoParam = um(sp.escopo) ?? 'shopping';

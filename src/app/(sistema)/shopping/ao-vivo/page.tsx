@@ -1,8 +1,10 @@
+import { exigirAba } from '@/lib/sessaoServidor';
 import { Suspense } from 'react';
 import { TituloPagina } from '@/components/shopping/Comum';
 import { AoVivoClient } from '@/components/shopping/AoVivoClient';
 
-export default function AoVivoPage() {
+export default async function AoVivoPage() {
+  await exigirAba('cameras');
   const urlMotor = process.env.NEXT_PUBLIC_ARGUS_VISAO_URL || 'http://localhost:8500';
   return (
     <div>

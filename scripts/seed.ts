@@ -95,8 +95,8 @@ async function main() {
   console.log('Criando usuário admin de login...');
   const senhaHash = await hashSenha('argus2026');
   await sql`
-    INSERT INTO usuarios (empresa_id, username, senha_hash, nome, role)
-    VALUES (${empresaId}, 'admin', ${senhaHash}, 'Administrador Argus', 'ADMIN')
+    INSERT INTO usuarios (empresa_id, username, senha_hash, nome, role, admin_geral)
+    VALUES (${empresaId}, 'admin', ${senhaHash}, 'Administrador Argus', 'ADMIN', true)
   `;
 
   console.log('Criando dispositivos...');

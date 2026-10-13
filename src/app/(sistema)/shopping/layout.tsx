@@ -3,6 +3,9 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import { exigirSessao } from '@/lib/sessaoServidor';
 import { SidebarShopping, MenuMovelShopping } from '@/components/shopping/SidebarShopping';
 import { PergunteArgus } from '@/components/shopping/PergunteArgus';
+import { obterConfiguracoes } from '@/lib/shopping/configuracoes';
+import { podeVer } from '@/lib/shopping/permissoes';
+import { perguntasHoje } from '@/lib/auditoria';
 import './tema.css';
 
 export const metadata: Metadata = {
@@ -18,15 +21,17 @@ const fonteTitulo = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-ti
 // separado do painel de ponto (/painel).
 export default async function ShoppingLayout({ children }: { children: React.ReactNode }) {
   const sessao = await exigirSessao();
+  const cfg = await obterConfiguracoes(sessao.empresaId);
+  const menu = { nomeUsuario: sessao.nome, permissoes: { adminGeral: sessao.adminGeral, abas: sessao.abas }, nomeShopping: cfg.nome, logo: cfg.logo };
 
   return (
     <div className={`tema-shopping ${fonteTitulo.variable} min-h-screen bg-surface-dim`}>
-      <SidebarShopping nomeUsuario={sessao.nome} />
-      <MenuMovelShopping nomeUsuario={sessao.nome} />
+      <SidebarShopping {...menu} />
+      <MenuMovelShopping {...menu} />
       <main className="pb-24 lg:pl-64 print:pl-0">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-8 lg:py-8">{children}</div>
       </main>
-      <PergunteArgus />
+      {cfg.pergunte_ativo && podeVer(sessao, 'pergunte') && <PergunteArgus limiteDia={cfg.pergunte_limite_dia} usadasHoje={await perguntasHoje(sessao.id, cfg.fuso)} />}
     </div>
   );
 }
