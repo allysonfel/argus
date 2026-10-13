@@ -49,7 +49,7 @@ export function corDivergente(indice: number): string {
 
 // etiqueta: número curto desenhado no começo da seta (ex.: "1.234").
 export type Seta = { de: [number, number]; para: [number, number]; valor: number; rotulo?: string; etiqueta?: string; cor?: string };
-export type EstiloMapa = 'planta' | 'mapa' | 'hibrido';
+export type EstiloMapa = 'planta' | 'mapa';
 export type Marcador = { x: number; y: number; rotulo: string; tom?: 'alerta' | 'info' | 'ok' };
 
 type Props = {
@@ -65,7 +65,7 @@ type Props = {
   mostrarCameras?: boolean;
   lojaDestacada?: string;
   aoClicarZona?: (id: string) => void;
-  /** Visão do mapa: 'planta' = imagem oficial; 'mapa' = desenho limpo; 'hibrido' = imagem + corredores desenhados por cima. */
+  /** Visão do mapa: 'planta' = imagem oficial; 'mapa' = desenho limpo. */
   estilo?: EstiloMapa;
   /** Mostra o botão de trocar a visão no canto (começa em `estilo`). */
   trocarVisao?: boolean;
@@ -78,7 +78,7 @@ function textoValor(v: number, f: Props['formatarValor']): string {
 }
 
 /** Nome das âncoras no meio da loja onde elas ficam. */
-function NomesAncoras({ andar, halo }: { andar: Andar; halo?: boolean }) {
+function NomesAncoras({ andar }: { andar: Andar }) {
   return (
     <>
       {LOJAS.filter((l) => l.andar === andar && (l.atracao > 1 || l.nome === 'Centerplex')).map((l) => {
@@ -87,7 +87,7 @@ function NomesAncoras({ andar, halo }: { andar: Andar; halo?: boolean }) {
         const [x, y] = poli ? centroide(poli) : c;
         const nome = l.nome.length > 22 ? l.nome.split(' · ')[0] : l.nome;
         return (
-          <text key={l.id} x={x} y={y + 3} textAnchor="middle" paintOrder="stroke" stroke={halo ? '#ffffff' : 'none'} strokeWidth={halo ? 3 : 0} className={`pointer-events-none text-[9px] font-semibold uppercase tracking-wide ${halo ? 'fill-slate-800' : 'fill-[var(--viz-texto)]'}`}>
+          <text key={l.id} x={x} y={y + 3} textAnchor="middle" className="pointer-events-none fill-[var(--viz-texto)] text-[9px] font-semibold uppercase tracking-wide">
             {nome}
           </text>
         );
@@ -120,15 +120,6 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
         {estilo !== 'mapa' && (
           /* Planta oficial do shopping de fundo (as lojas já vêm com nome nela) */
           <image href={FUNDO[andar].src} x={FUNDO[andar].x} y={FUNDO[andar].y} width={FUNDO[andar].w} height={FUNDO[andar].h} preserveAspectRatio="none" />
-        )}
-        {estilo === 'hibrido' && (
-          /* Híbrido: corredores e nomes das âncoras desenhados por cima da imagem */
-          <g pointerEvents="none">
-            {ESBOCO[andar].corredores.map((p, i) => (
-              <path key={`h${i}`} d={caminho(p)} fill="rgba(37, 99, 235, 0.10)" stroke="rgba(37, 99, 235, 0.65)" strokeWidth="1.4" fillRule="evenodd" />
-            ))}
-            <NomesAncoras andar={andar} halo />
-          </g>
         )}
         {estilo === 'mapa' && (
           /* Mapa: prédio, lojas, corredores e estacionamento extraídos da planta oficial */
@@ -306,7 +297,6 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
 const VISOES: { id: EstiloMapa; nome: string; dica: string }[] = [
   { id: 'mapa', nome: 'Mapa', dica: 'Desenho limpo: corredores, lojas e estacionamento' },
   { id: 'planta', nome: 'Planta', dica: 'Planta oficial do shopping, com o nome das lojas' },
-  { id: 'hibrido', nome: 'Híbrido', dica: 'Planta oficial com os corredores destacados por cima' },
 ];
 
 function Miniatura({ andar, estilo }: { andar: Andar; estilo: EstiloMapa }) {
@@ -323,7 +313,6 @@ function Miniatura({ andar, estilo }: { andar: Andar; estilo: EstiloMapa }) {
           {e.corredores.map((p, i) => <path key={`r${i}`} d={caminho(p)} fill="var(--viz-fundo)" fillRule="evenodd" />)}
         </>
       )}
-      {estilo === 'hibrido' && e.corredores.map((p, i) => <path key={`h${i}`} d={caminho(p)} fill="rgba(37, 99, 235, 0.18)" stroke="rgba(37, 99, 235, 0.8)" strokeWidth="6" fillRule="evenodd" />)}
     </svg>
   );
 }

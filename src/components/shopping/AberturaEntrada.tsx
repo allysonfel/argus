@@ -5,7 +5,7 @@ import { LogoA, LogoArgus } from '@/components/shopping/Logo';
 
 /** Cookie curto criado no login (ver login/actions.ts): a abertura só toca logo depois de entrar. */
 const COOKIE = 'argus-abertura';
-const DURACAO_MS = 3000;
+const DURACAO_MS = 5000;
 
 // Abertura do sistema depois do login: o "A" do Argus acende, uma linha de
 // varredura (como a de uma câmera) revela o nome, aparece o "bem-vindo" e
@@ -26,6 +26,11 @@ export function AberturaEntrada({ nome }: { nome: string }) {
     };
   }, []);
 
+  // Ao sair, o painel por trás entra animado (ver .entrada-animada em tema.css).
+  useEffect(() => {
+    if (fase !== 'tocando') document.querySelector('.entrada-animada')?.classList.add('revelar');
+  }, [fase]);
+
   if (fase === 'nada') return null;
   const primeiroNome = nome.split(' ')[0];
 
@@ -43,6 +48,8 @@ export function AberturaEntrada({ nome }: { nome: string }) {
         @keyframes ab-revela { from { clip-path: inset(0 100% 0 0) } to { clip-path: inset(0 0 0 0) } }
         @keyframes ab-varre { 0% { left: 0; opacity: 0 } 10% { opacity: 1 } 90% { opacity: 1 } 100% { left: 100%; opacity: 0 } }
         @keyframes ab-sobe { from { transform: translateY(10px); opacity: 0 } to { transform: none; opacity: 1 } }
+        @keyframes ab-barra { from { transform: scaleX(0) } to { transform: scaleX(1) } }
+        @keyframes ab-ponto { 0%, 80%, 100% { opacity: .2 } 40% { opacity: 1 } }
         @keyframes ab-grade { from { opacity: 0 } 40% { opacity: .5 } to { opacity: .15 } }
         .abertura .fundo { animation: ab-fundo 2.6s ease-out both }
         .abertura .grade { animation: ab-grade 2s ease-out both }
@@ -52,6 +59,8 @@ export function AberturaEntrada({ nome }: { nome: string }) {
         .abertura .varre { animation: ab-varre .8s cubic-bezier(.6,0,.2,1) .7s both }
         .abertura .s1 { animation: ab-sobe .5s ease-out 1.35s both }
         .abertura .s2 { animation: ab-sobe .5s ease-out 1.6s both }
+        .abertura .barra { animation: ab-barra 3s cubic-bezier(.4,0,.2,1) 1.7s both; transform-origin: left }
+        .abertura .ponto { animation: ab-ponto 1.2s ease-in-out infinite }
         @media (prefers-reduced-motion: reduce) { .abertura * { animation-duration: 1ms !important; animation-delay: 0s !important } }
       `}</style>
 
@@ -80,7 +89,17 @@ export function AberturaEntrada({ nome }: { nome: string }) {
         </div>
 
         <p className="s1 mt-10 text-xl font-semibold sm:text-2xl">Bem-vindo{primeiroNome ? `, ${primeiroNome}` : ''}</p>
-        <p className="s2 mt-1 text-sm text-white/60">Caruaru Shopping · carregando o painel</p>
+        <div className="s2 mt-3 flex flex-col items-center">
+          <p className="text-sm text-white/70">
+            Carregando painel
+            <span className="ponto">.</span>
+            <span className="ponto [animation-delay:.2s]">.</span>
+            <span className="ponto [animation-delay:.4s]">.</span>
+          </p>
+          <span className="mt-3 block h-0.5 w-48 overflow-hidden rounded-full bg-white/10">
+            <span className="barra block h-full w-full rounded-full bg-sky-400 shadow-[0_0_8px_rgb(56_189_248/.8)]" />
+          </span>
+        </div>
       </div>
     </div>
   );

@@ -4,13 +4,12 @@ import { StatCard } from '@/components/ui/StatCard';
 import { AlternarSimulacao } from '@/components/shopping/AlternarSimulacao';
 import { TituloPagina, Secao, Variacao, Tabela } from '@/components/shopping/Comum';
 import { GraficoLinhas, GraficoBarras } from '@/components/shopping/Graficos';
-import { Planta } from '@/components/shopping/Planta';
+import { CalorVisaoGeral } from '@/components/shopping/simulacao/CalorVisaoGeral';
 import { FiltroPeriodo } from '@/components/shopping/visao/FiltroPeriodo';
 import { VisaoGeralReal } from '@/components/shopping/visao/VisaoGeralReal';
 import { URL_MOTOR } from '@/lib/shopping/casos';
 import {
   agoraDemo,
-  calorPorZona,
   diasEntre,
   entradasDia,
   entradasPorHora,
@@ -106,7 +105,6 @@ function VisaoSimulada({ per }: { per: Periodo }) {
   const portasMapa = new Map<string, { nome: string; valor: number }>();
   for (const d of dias) for (const p of entradasPorPortaDia(d)) portasMapa.set(p.id, { nome: p.nome, valor: (portasMapa.get(p.id)?.valor ?? 0) + p.valor });
   const portas = [...portasMapa.values()].sort((a, b) => b.valor - a.valor);
-  const calor = calorPorZona(per.inicio, per.fim);
   const nomeAnterior = umDia ? `${DIAS_SEMANA[diaSemana(iniAnt)].toLowerCase()} anterior (${formatarData(iniAnt)})` : `${per.dias} dias anteriores`;
 
   return (
@@ -154,8 +152,8 @@ function VisaoSimulada({ per }: { per: Periodo }) {
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <Secao
-          titulo="Movimento no Térreo"
-          descricao={`Densidade de passagens por área de corredor · ${per.rotulo}`}
+          titulo="Mapa de calor"
+          descricao={per.dias === 1 ? `Onde as pessoas passaram e ficaram · ${per.rotulo}` : `Onde as pessoas passaram e ficaram · último dia do período (${formatarData(per.fim)})`}
           className="xl:col-span-2"
           acao={
             <Link href="/shopping/mapa-calor" className="text-sm font-medium text-primary hover:underline">
@@ -163,7 +161,7 @@ function VisaoSimulada({ per }: { per: Periodo }) {
             </Link>
           }
         >
-          <Planta andar="T" valores={calor} estilo="mapa" trocarVisao />
+          <CalorVisaoGeral dia={per.fim} />
         </Secao>
         <Secao titulo="Corredores mais movimentados" descricao={`Passagens · ${per.rotulo} (estimativa)`}>
           <Tabela cabecalho={['Corredor', 'Passagens']} alinharDireita={[1]} linhas={corredores.slice(0, 8).map(([c, v]) => [c, formatarNumero(v)])} />

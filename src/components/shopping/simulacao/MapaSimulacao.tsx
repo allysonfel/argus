@@ -216,17 +216,19 @@ type Props = {
   /** Rastro curto atrás de cada pessoa. */
   rastro?: boolean;
   planta?: Omit<ComponentProps<typeof Planta>, 'andar'>;
+  /** Visão do mapa ao abrir, se a pessoa ainda não escolheu outra. */
+  estiloInicial?: EstiloMapa;
 };
 
-export function MapaSimulacao({ sim, andar, relogio, calor = null, destaque = null, trilhas = false, rastro = false, planta }: Props) {
+export function MapaSimulacao({ sim, andar, relogio, calor = null, destaque = null, trilhas = false, rastro = false, planta, estiloInicial = 'planta' }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const masc = useMemo(() => mascara(andar), [andar]);
-  const [estilo, setEstilo] = useState<EstiloMapa>('planta');
+  const [estilo, setEstilo] = useState<EstiloMapa>(estiloInicial);
   useEffect(() => {
     try {
       const salvo = localStorage.getItem('argus-estilo-planta');
       if (salvo === 'esboco' || salvo === 'mapa') setEstilo('mapa');
-      else if (salvo === 'hibrido') setEstilo('hibrido');
+      else if (salvo === 'planta') setEstilo('planta');
     } catch {}
   }, []);
   const mudarEstilo = (e: EstiloMapa) => {

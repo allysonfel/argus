@@ -27,15 +27,17 @@ export default async function ShoppingLayout({ children }: { children: React.Rea
   const cfg = await obterConfiguracoes(sessao.empresaId);
   const menu = { nomeUsuario: sessao.nome, permissoes: { adminGeral: sessao.adminGeral, abas: sessao.abas }, nomeShopping: cfg.nome, logo: cfg.logo };
 
+  const abertura = (await cookies()).has('argus-abertura');
+
   return (
-    <div className={`tema-shopping ${fonteTitulo.variable} min-h-screen bg-surface-dim`}>
+    <div className={`tema-shopping ${fonteTitulo.variable} min-h-screen bg-surface-dim ${abertura ? 'entrada-animada' : ''}`}>
       <SidebarShopping {...menu} />
       <MenuMovelShopping {...menu} />
       <BotaoSimulacao />
       <main className="pb-24 lg:pl-64 print:pl-0">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-8 lg:py-8">{children}</div>
       </main>
-      {(await cookies()).has('argus-abertura') && <AberturaEntrada nome={sessao.nome} />}
+      {abertura && <AberturaEntrada nome={sessao.nome} />}
       {cfg.pergunte_ativo && podeVer(sessao, 'pergunte') && <PergunteArgus limiteDia={cfg.pergunte_limite_dia} usadasHoje={await perguntasHoje(sessao.id, cfg.fuso)} />}
     </div>
   );
