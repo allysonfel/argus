@@ -1,3 +1,4 @@
+import { AlternarSimulacao } from '@/components/shopping/AlternarSimulacao';
 import { exigirAba } from '@/lib/sessaoServidor';
 import { TituloPagina, Secao, Tabela, Variacao } from '@/components/shopping/Comum';
 import { GraficoBarras, GraficoLinhas } from '@/components/shopping/Graficos';
@@ -92,7 +93,7 @@ export default async function ComparativoPage({ searchParams }: { searchParams: 
   const unidade = escopo.tipo === 'shopping' ? 'entradas' : 'passagens';
   const ano = Number(hoje.slice(0, 4));
 
-  return (
+  const simulado = (
     <div>
       <TituloPagina titulo="Comparativo de períodos" descricao="Compare qualquer período com outro, com os dias alinhados pelo dia da semana (sábado com sábado). Vale para o shopping inteiro, um andar, um corredor ou uma área." />
 
@@ -207,4 +208,5 @@ export default async function ComparativoPage({ searchParams }: { searchParams: 
       </Secao>
     </div>
   );
+  return <AlternarSimulacao real={<div><TituloPagina titulo="Comparativo de períodos" /><Secao titulo="Disponível na simulação" descricao="Comparar períodos precisa de histórico de vários dias."><p className="text-sm text-on-surface-variant">Os vídeos das 15 câmeras de demonstração são uma gravação só, então ainda não existe histórico para comparar uma semana com outra. Com as câmeras do shopping ligadas, esta tela compara os períodos com os dados reais. Para ver como fica, ligue a Simulação do shopping no canto superior direito.</p></Secao></div>} simulado={simulado} />;
 }

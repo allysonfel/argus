@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type ComponentProps } from 'react';
 import { Planta } from '@/components/shopping/Planta';
 import { ENTRADAS, ZONAS, type Andar } from '@/lib/shopping/planta';
+import { ESBOCO, type Poligono } from '@/lib/shopping/plantaEsboco';
 import { DIAS_SEMANA, agoraDemo, diaSemana, formatarData, somarDias } from '@/lib/shopping/demo';
 import { MIN_DIA, andarIdx, horaDoMinuto, posicao, type Agente, type Simulacao } from '@/lib/shopping/simulacao';
 
@@ -159,15 +160,30 @@ export function SeletorAndar({ andar, setAndar }: { andar: Andar; setAndar: (a: 
 const GW = 125;
 const GH = 70; // grade do calor: células de 8 px na planta (1000 x 560)
 
-// Onde dá pra andar (corredores, praças e entradas): o calor só aparece aí.
+// Onde dá pra andar: os corredores e o estacionamento extraídos da planta
+// oficial (formato exato) + as entradas. O calor só aparece aí.
+function dentroPoli(x: number, y: number, p: Poligono): boolean {
+  let d = false;
+  for (const anel of p)
+    for (let i = 0, j = anel.length - 1; i < anel.length; j = i++) {
+      const [xi, yi] = anel[i];
+      const [xj, yj] = anel[j];
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) d = !d;
+    }
+  return d;
+}
+
 function mascara(andar: Andar): Uint8Array {
   const m = new Uint8Array(GW * GH);
-  const rects = [...ZONAS.filter((z) => z.andar === andar).map((z) => z.rect), ...ENTRADAS.filter((e) => e.andar === andar).map((e) => e.rect)];
+  const polis = [...ESBOCO[andar].corredores, ...ESBOCO[andar].estacionamento];
+  const rects = [...ENTRADAS.filter((e) => e.andar === andar).map((e) => e.rect), ...ZONAS.filter((z) => z.andar === andar).map((z) => z.rect)];
   for (let j = 0; j < GH; j++)
     for (let i = 0; i < GW; i++) {
       const x = (i + 0.5) * 8;
       const y = (j + 0.5) * 8;
-      if (rects.some((r) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h)) m[j * GW + i] = 1;
+      const noCorredor = polis.some((p) => dentroPoli(x, y, p));
+      // Zonas fora do desenho extraído (ex.: retângulo que passa um pouco da borda) não contam.
+      if (noCorredor || rects.slice(0, ENTRADAS.length).some((r) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h)) m[j * GW + i] = 1;
     }
   return m;
 }

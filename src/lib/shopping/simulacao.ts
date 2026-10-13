@@ -13,7 +13,7 @@ import { CINEMA, ENTRADAS, LIGACOES_ESCADAS, LOJAS, ZONAS, ZONA_ALIMENTACAO, ZON
 export const MIN_DIA = 12 * 60; // 10h às 22h
 export const N_AGENTES = 3600;
 const PASSO_AMOSTRA = 0.5; // minutos simulados entre amostras de posição
-const VEL_PX_MIN = 380; // ~1,1 m/s (célula do corredor ≈ 15 m)
+const VEL_PX_MIN = 230; // passeio no shopping (~0,7 m/s, com paradas curtas)
 
 export type Seg = { t0: number; t1: number; x0: number; y0: number; x1: number; y1: number; andar: 0 | 1; vis: boolean };
 export type Agente = { id: number; segs: Seg[]; areas: string[]; entrada: string; saidaPor: string; chegada: number; saida: number };
@@ -213,15 +213,21 @@ export function simular(acoes: Acao[] = [], semente = 20261012, dia?: string): S
       }
     };
 
-    const visitas = 1 + Math.floor(Math.pow(rnd(), 1.4) * 4);
+    const visitas = 2 + Math.floor(Math.pow(rnd(), 1.3) * 4);
     for (let v = 0; v < visitas && t < MIN_DIA - 30; v++) {
       const h = 10 + t / 60;
       const almoco = h >= 11.5 && h < 14.5;
       const jantar = h >= 18.5 && h < 21;
       const r = rnd();
-      if (r < (almoco ? 0.3 : jantar ? 0.25 : 0.05)) {
+      if (r < (almoco ? 0.16 : jantar ? 0.13 : 0.03)) {
         irAte(IDX.get(ZONA_ALIMENTACAO)!);
-        ficar(15 + 25 * rnd(), true, ZONAS.find((z) => z.id === ZONA_ALIMENTACAO)!.rect);
+        ficar(8 + 12 * rnd(), true, ZONAS.find((z) => z.id === ZONA_ALIMENTACAO)!.rect);
+      } else if (r < (almoco ? 0.36 : jantar ? 0.33 : 0.28)) {
+        // Passeio: anda por um corredor olhando vitrines, sem entrar em loja.
+        const zs = ZONAS.filter((z) => z.id !== ZONA_ALIMENTACAO);
+        const z = sortear(zs, (zz) => zz.peso, rnd());
+        irAte(IDX.get(z.id)!);
+        ficar(1.5 + 3 * rnd(), true, z.rect);
       } else if (h >= 13.5 && h < 20 && r > 0.95) {
         irAte(IDX.get(ZONA_CINEMA)!);
         mover(CINEMA.x + 4, cy(CINEMA), andar);
@@ -233,9 +239,9 @@ export function simular(acoes: Acao[] = [], semente = 20261012, dia?: string): S
         const z = ZONAS.find((zz) => zz.id === d.zona)!;
         if (d.tipo === 'loja' && d.porta) {
           // Metade olha a vitrine antes (à vista, no corredor), depois entra.
-          if (rnd() < 0.5) ficar(0.5 + 2 * rnd(), true, { x: d.porta[0] - 25, y: d.porta[1] - 12, w: 50, h: 24 });
+          if (rnd() < 0.75) ficar(1 + 2.5 * rnd(), true, { x: d.porta[0] - 25, y: d.porta[1] - 12, w: 50, h: 24 });
           mover(d.porta[0], d.porta[1], andar);
-          ficar(3 + 10 * rnd(), false); // dentro da loja: não monitorado
+          ficar(3 + 8 * rnd(), false); // dentro da loja: não monitorado
         } else {
           ficar(3 + 6 * rnd(), true, z.rect);
         }

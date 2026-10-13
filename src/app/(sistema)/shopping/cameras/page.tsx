@@ -1,3 +1,6 @@
+import { AlternarSimulacao } from '@/components/shopping/AlternarSimulacao';
+import { SaudeCamerasReal } from '@/components/shopping/visao/SaudeCamerasReal';
+import { URL_MOTOR } from '@/lib/shopping/casos';
 import { exigirAba } from '@/lib/sessaoServidor';
 import Link from 'next/link';
 import { TituloPagina, Secao, Tabela } from '@/components/shopping/Comum';
@@ -23,7 +26,7 @@ export default async function CamerasPage() {
   // Problemas primeiro
   const ordenadas = [...problemas, ...online];
 
-  return (
+  const simulado = (
     <div>
       <TituloPagina
         titulo="Câmeras e saúde do sistema"
@@ -79,4 +82,5 @@ export default async function CamerasPage() {
       </div>
     </div>
   );
+  return <AlternarSimulacao real={<div><TituloPagina titulo="Câmeras e saúde do sistema" descricao="Situação real de cada câmera de demonstração, direto do motor de visão." /><SaudeCamerasReal urlMotor={URL_MOTOR} /></div>} simulado={simulado} />;
 }

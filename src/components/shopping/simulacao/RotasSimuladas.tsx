@@ -66,13 +66,16 @@ export function RotasSimuladas() {
     const [ex, ey] = centro(e.rect);
     const [zx, zy] = centro(zonaPorId(e.zonaId)!.rect);
     const len = Math.hypot(zx - ex, zy - ey) || 1;
-    const fora: [number, number] = [ex - ((zx - ex) / len) * 70, ey - ((zy - ey) / len) * 70];
-    const dentro: [number, number] = [ex + ((zx - ex) / len) * 25, ey + ((zy - ey) / len) * 25];
+    const ux = (zx - ex) / len;
+    const uy = (zy - ey) / len;
+    const fora: [number, number] = [ex - ux * 55, ey - uy * 55];
+    const dentro: [number, number] = [ex + ux * 10, ey + uy * 10];
     const entraram = agentes.filter((a) => a.entrada === e.id).length * sim.escala;
     const sairam = agentes.filter((a) => a.saidaPor === e.id).length * sim.escala;
+    const n = (v: number) => (v >= 1000 ? `${(v / 1000).toFixed(1).replace('.', ',')} mil` : String(v));
     return [
-      { de: fora, para: dentro, valor: entraram, rotulo: `Entraram pela ${e.nome}` },
-      { de: dentro, para: fora, valor: sairam, rotulo: `Saíram pela ${e.nome}` },
+      { de: fora, para: dentro, valor: entraram, rotulo: `Entraram pela ${e.nome}`, etiqueta: `↓ ${n(entraram)}` },
+      { de: dentro, para: fora, valor: sairam, rotulo: `Saíram pela ${e.nome}`, etiqueta: `↑ ${n(sairam)}`, cor: 'saida' },
     ];
   });
   const sel = rotas.find((r) => r.k === rotaSel);
@@ -84,7 +87,7 @@ export function RotasSimuladas() {
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <Secao
           titulo="Entradas, saídas e movimento"
-          descricao="Setas nas portas do shopping: quantas pessoas entraram (pra dentro) e saíram (pra fora) no dia, mais grossa = mais gente. Os pontos são os visitantes andando, com o rastro do caminho."
+          descricao="Em cada porta do shopping: laranja = quantas pessoas entraram, azul = quantas saíram no dia. Os pontos são os visitantes andando, com o rastro do caminho."
           className="xl:col-span-2"
           acao={<SeletorAndar andar={andar} setAndar={setAndar} />}
         >

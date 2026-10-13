@@ -141,17 +141,6 @@ export const ESCADAS: { andar: Andar; rect: Retangulo }[] = [
   { andar: 'P1', rect: P(930, 200, 60, 35) },
 ];
 
-// Contorno do prédio em cada piso (pra a visão "esboço", desenhada no
-// estilo do sistema por cima da geometria das plantas oficiais).
-const ptT = (x: number, y: number): [number, number] => [DX_T + x * ESC_T, y * ESC_T];
-export const CONTORNO: Record<Andar, [number, number][]> = {
-  T: [
-    [350, 20], [770, 20], [770, 235], [950, 285], [1290, 290], [1295, 440], [1385, 450], [1385, 785], [1090, 785],
-    [1090, 790], [750, 790], [750, 760], [600, 760], [520, 745], [330, 620], [300, 540], [255, 470], [270, 330], [350, 300],
-  ].map(([x, y]) => ptT(x, y)),
-  P1: [], // calculado abaixo (envolve lojas e corredores do piso)
-};
-
 /** Centerplex (cinema), no Térreo; a porta é pelo Corredor Leste. */
 export const CINEMA: Retangulo = T(1290, 450, 90, 220);
 export const ZONA_CINEMA = 'T-L1';
@@ -260,21 +249,3 @@ export function centroArea(areaId: string, andar?: Andar): [number, number] {
   return [cs.reduce((a, c) => a + c[0], 0) / cs.length, cs.reduce((a, c) => a + c[1], 0) / cs.length];
 }
 
-/** Envoltória convexa (contorno do Piso 1 a partir das lojas e corredores). */
-function envoltoria(pts: [number, number][]): [number, number][] {
-  const p = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-  const cruz = (o: number[], a: number[], b: number[]) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
-  const baixo: [number, number][] = [];
-  for (const q of p) {
-    while (baixo.length >= 2 && cruz(baixo[baixo.length - 2], baixo[baixo.length - 1], q) <= 0) baixo.pop();
-    baixo.push(q);
-  }
-  const cima: [number, number][] = [];
-  for (const q of [...p].reverse()) {
-    while (cima.length >= 2 && cruz(cima[cima.length - 2], cima[cima.length - 1], q) <= 0) cima.pop();
-    cima.push(q);
-  }
-  return [...baixo.slice(0, -1), ...cima.slice(0, -1)];
-}
-const cantos = (r: Retangulo, m = 6): [number, number][] => [[r.x - m, r.y - m], [r.x + r.w + m, r.y - m], [r.x + r.w + m, r.y + r.h + m], [r.x - m, r.y + r.h + m]];
-CONTORNO.P1 = envoltoria([...LOJAS, ...ZONAS, ...ENTRADAS].filter((x) => x.andar === 'P1').flatMap((x) => cantos(x.rect)));

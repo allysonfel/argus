@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import { exigirSessao } from '@/lib/sessaoServidor';
 import { SidebarShopping, MenuMovelShopping } from '@/components/shopping/SidebarShopping';
 import { PergunteArgus } from '@/components/shopping/PergunteArgus';
+import { BotaoSimulacao } from '@/components/shopping/AlternarSimulacao';
 import { obterConfiguracoes } from '@/lib/shopping/configuracoes';
 import { podeVer } from '@/lib/shopping/permissoes';
 import { perguntasHoje } from '@/lib/auditoria';
@@ -28,6 +29,7 @@ export default async function ShoppingLayout({ children }: { children: React.Rea
     <div className={`tema-shopping ${fonteTitulo.variable} min-h-screen bg-surface-dim`}>
       <SidebarShopping {...menu} />
       <MenuMovelShopping {...menu} />
+      <BotaoSimulacao />
       <main className="pb-24 lg:pl-64 print:pl-0">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-8 lg:py-8">{children}</div>
       </main>

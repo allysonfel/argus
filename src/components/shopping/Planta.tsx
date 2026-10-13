@@ -2,7 +2,27 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { CAMERAS, CONTORNO, ENTRADAS, ESCADAS, FUNDO, LOJAS, ZONAS, type Andar } from '@/lib/shopping/planta';
+import { CAMERAS, ENTRADAS, ESCADAS, FUNDO, LOJAS, ZONAS, type Andar } from '@/lib/shopping/planta';
+import { ESBOCO, type Poligono } from '@/lib/shopping/plantaEsboco';
+
+const caminho = (p: Poligono) => p.map((a) => `M${a.map(([x, y]) => `${x},${y}`).join('L')}Z`).join('');
+
+/** Ponto dentro de um polígono (só o anel externo). */
+function dentroDe([x, y]: [number, number], p: Poligono): boolean {
+  let d = false;
+  const a = p[0];
+  for (let i = 0, j = a.length - 1; i < a.length; j = i++) {
+    const [xi, yi] = a[i];
+    const [xj, yj] = a[j];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) d = !d;
+  }
+  return d;
+}
+
+function centroide(p: Poligono): [number, number] {
+  const a = p[0];
+  return [a.reduce((s, q) => s + q[0], 0) / a.length, a.reduce((s, q) => s + q[1], 0) / a.length];
+}
 
 // Escala sequencial de um matiz só (azul, claro -> escuro), da paleta de
 // referência do guia de visualização. Claro = pouco movimento.
@@ -27,7 +47,8 @@ export function corDivergente(indice: number): string {
   return DIVERGENTE_POS[2];
 }
 
-export type Seta = { de: [number, number]; para: [number, number]; valor: number; rotulo?: string };
+// etiqueta: número curto desenhado no começo da seta (ex.: "1.234").
+export type Seta = { de: [number, number]; para: [number, number]; valor: number; rotulo?: string; etiqueta?: string; cor?: string };
 export type Marcador = { x: number; y: number; rotulo: string; tom?: 'alerta' | 'info' | 'ok' };
 
 type Props = {
@@ -76,20 +97,36 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
           /* Planta oficial do shopping de fundo (as lojas já vêm com nome nela) */
           <image href={FUNDO[andar].src} x={FUNDO[andar].x} y={FUNDO[andar].y} width={FUNDO[andar].w} height={FUNDO[andar].h} preserveAspectRatio="none" />
         ) : (
-          /* Esboço: prédio, lojas e âncoras redesenhados a partir da planta oficial */
+          /* Esboço: prédio, lojas, corredores e estacionamento extraídos da planta oficial */
           <g>
-            <polygon points={CONTORNO[andar].map((p) => p.join(',')).join(' ')} fill="var(--viz-loja)" stroke="var(--viz-linha)" strokeWidth="2" strokeLinejoin="round" />
-            {LOJAS.filter((l) => l.andar === andar).map((l) => {
-              const tam = Math.max(7, Math.min(12, l.rect.w / Math.max(6, l.nome.length * 0.62)));
+            <defs>
+              <pattern id="estac" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect width="8" height="8" fill="var(--viz-corredor)" />
+                <line x1="0" y1="0" x2="0" y2="8" stroke="var(--viz-linha)" strokeWidth="2" />
+              </pattern>
+            </defs>
+            {ESBOCO[andar].contorno.map((p, i) => (
+              <path key={`c${i}`} d={caminho(p)} fill="var(--viz-loja)" stroke="var(--viz-linha)" strokeWidth="1.5" fillRule="evenodd" />
+            ))}
+            {ESBOCO[andar].estacionamento.map((p, i) => (
+              <path key={`e${i}`} d={caminho(p)} fill="url(#estac)" stroke="var(--viz-linha)" fillRule="evenodd" />
+            ))}
+            {ESBOCO[andar].lojas.map((p, i) => (
+              <path key={`l${i}`} d={caminho(p)} fill="var(--viz-neutro)" stroke="var(--viz-fundo)" strokeWidth="1.2" />
+            ))}
+            {ESBOCO[andar].corredores.map((p, i) => (
+              <path key={`r${i}`} d={caminho(p)} fill="var(--viz-fundo)" stroke="var(--viz-linha)" strokeWidth="0.8" fillRule="evenodd" />
+            ))}
+            {/* Nome das âncoras no meio da loja onde elas ficam */}
+            {LOJAS.filter((l) => l.andar === andar && (l.atracao > 1 || l.nome === 'Centerplex')).map((l) => {
+              const c: [number, number] = [l.rect.x + l.rect.w / 2, l.rect.y + l.rect.h / 2];
+              const poli = ESBOCO[andar].lojas.find((p) => dentroDe(c, p));
+              const [x, y] = poli ? centroide(poli) : c;
+              const nome = l.nome.length > 22 ? l.nome.split(' · ')[0] : l.nome;
               return (
-                <g key={l.id}>
-                  <rect x={l.rect.x} y={l.rect.y} width={l.rect.w} height={l.rect.h} rx="3" fill={l.atracao > 1 ? 'var(--viz-neutro)' : 'var(--viz-fundo)'} stroke="var(--viz-linha)" strokeWidth="1" />
-                  {l.rect.w > 28 && l.rect.h > 14 && (
-                    <text x={l.rect.x + l.rect.w / 2} y={l.rect.y + l.rect.h / 2 + tam / 3} textAnchor="middle" className="fill-[var(--viz-texto)] font-semibold" style={{ fontSize: tam }}>
-                      {l.nome.length > 28 ? l.nome.split(' · ')[0] : l.nome}
-                    </text>
-                  )}
-                </g>
+                <text key={l.id} x={x} y={y + 3} textAnchor="middle" className="pointer-events-none fill-[var(--viz-texto)] text-[9px] font-semibold uppercase tracking-wide">
+                  {nome}
+                </text>
               );
             })}
           </g>
@@ -157,8 +194,12 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
 
 
         <defs>
-          <marker id="ponta" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          {/* Ponta de tamanho fixo (não cresce com a espessura da linha) */}
+          <marker id="ponta" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
             <path d="M0 0L10 5L0 10z" fill="var(--viz-seta)" />
+          </marker>
+          <marker id="ponta-saida" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+            <path d="M0 0L10 5L0 10z" fill="#2563eb" />
           </marker>
         </defs>
 
@@ -171,25 +212,33 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
           // desloca levemente pra direita do sentido (ida e volta não se sobrepõem)
           const ox = (-dy / len) * 9;
           const oy = (dx / len) * 9;
-          const larg = 2 + (s.valor / maxSeta) * 12;
+          const larg = 2 + (s.valor / maxSeta) * 5;
+          const curta = len < 120; // setas das portas: começam/terminam perto
+          const ax = x1 + ox + (dx / len) * (curta ? 0 : 22);
+          const ay = y1 + oy + (dy / len) * (curta ? 0 : 22);
+          const bx = x2 + ox - (dx / len) * (curta ? 4 : 26);
+          const by = y2 + oy - (dy / len) * (curta ? 4 : 26);
+          const azul = s.cor === 'saida';
           return (
-            <line
+            <g
               key={i}
-              x1={x1 + ox + (dx / len) * 22}
-              y1={y1 + oy + (dy / len) * 22}
-              x2={x2 + ox - (dx / len) * 26}
-              y2={y2 + oy - (dy / len) * 26}
-              stroke="var(--viz-seta)"
-              strokeOpacity="0.85"
-              strokeWidth={larg}
-              strokeLinecap="round"
-              markerEnd="url(#ponta)"
               onMouseMove={(e) => {
-                const svg = (e.target as SVGElement).ownerSVGElement!.getBoundingClientRect();
-                setHover({ x: e.clientX - svg.left, y: e.clientY - svg.top, texto: [s.rotulo ?? 'Fluxo', `${s.valor.toLocaleString('pt-BR')} pessoas/dia (estimativa)`] });
+                const svg = (e.currentTarget as SVGElement).ownerSVGElement!.getBoundingClientRect();
+                setHover({ x: e.clientX - svg.left, y: e.clientY - svg.top, texto: [s.rotulo ?? 'Fluxo', `${s.valor.toLocaleString('pt-BR')} pessoas no dia (estimativa)`] });
               }}
               onMouseLeave={() => setHover(null)}
-            />
+            >
+              <line x1={ax} y1={ay} x2={bx} y2={by} stroke="#fff" strokeOpacity="0.9" strokeWidth={larg + 3} strokeLinecap="round" />
+              <line x1={ax} y1={ay} x2={bx} y2={by} stroke={azul ? '#2563eb' : 'var(--viz-seta)'} strokeWidth={larg} strokeLinecap="round" markerEnd={azul ? 'url(#ponta-saida)' : 'url(#ponta)'} />
+              {s.etiqueta && (
+                <g transform={`translate(${ax - ox * 0.2}, ${ay - oy * 0.2})`}>
+                  <rect x={-s.etiqueta.length * 3.4 - 5} y="-8" width={s.etiqueta.length * 6.8 + 10} height="16" rx="8" fill={azul ? '#2563eb' : 'var(--viz-seta)'} />
+                  <text textAnchor="middle" y="4" className="fill-white text-[10px] font-semibold">
+                    {s.etiqueta}
+                  </text>
+                </g>
+              )}
+            </g>
           );
         })}
 
