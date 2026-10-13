@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { LogoArgus } from '@/components/shopping/Logo';
 
-const RECURSOS = ['Fluxo de visitantes', 'Mapa de calor', 'Rotas e zonas mortas', 'Busca de criança perdida'];
+const RECURSOS = ['Câmeras com IA', 'Contagem de visitantes', 'Mapa de calor', 'Rotas e fluxo', 'Zonas mortas', 'Comparativo de períodos', 'Busca de criança perdida', 'Pergunte ao Argus'];
 
 export default function LoginPage() {
   const [state, formAction, pendente] = useActionState(fazerLogin, { erro: null });
@@ -27,15 +27,13 @@ export default function LoginPage() {
             </span>
             <span className="h-10 w-px bg-white/30" />
             <span className="flex flex-col items-start">
-              <LogoArgus className="h-7 text-white" />
-              <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.25em] text-white/70">Inteligência Patrimonial</span>
+              <LogoArgus className="h-9 text-white" />
+              {/* Mesma largura do logotipo ARGUS */}
+              <span className="mt-1 whitespace-nowrap text-[8.2px] font-medium uppercase tracking-[0.12em] text-white/70">Inteligência Patrimonial</span>
             </span>
           </div>
           <h1 className="text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">O Caruaru Shopping inteiro, em tempo real.</h1>
-          <p className="mt-4 text-base leading-relaxed text-white/80 sm:text-lg">
-            As câmeras do shopping viram números: quantas pessoas entram, por onde andam, quais corredores ficam vazios e onde está uma criança perdida.
-          </p>
-          <ul className="mt-6 hidden flex-wrap gap-2 sm:flex sm:justify-center lg:justify-start">
+          <ul className="mt-6 flex flex-wrap justify-center gap-2 lg:justify-start">
             {RECURSOS.map((r) => (
               <li key={r} className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-medium text-white/90 backdrop-blur">
                 {r}
