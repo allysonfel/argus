@@ -67,6 +67,8 @@ type Props = {
   aoClicarZona?: (id: string) => void;
   /** Visão do mapa: 'planta' = imagem oficial; 'mapa' = desenho limpo; 'hibrido' = imagem + corredores desenhados por cima. */
   estilo?: EstiloMapa;
+  /** Mostra o botão de trocar a visão no canto (começa em `estilo`). */
+  trocarVisao?: boolean;
 };
 
 function textoValor(v: number, f: Props['formatarValor']): string {
@@ -94,7 +96,9 @@ function NomesAncoras({ andar, halo }: { andar: Andar; halo?: boolean }) {
   );
 }
 
-export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'densidade', destaque = [], selecionada, linkZona, setas = [], marcadores = [], mostrarCameras, lojaDestacada, aoClicarZona, estilo = 'planta' }: Props) {
+export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'densidade', destaque = [], selecionada, linkZona, setas = [], marcadores = [], mostrarCameras, lojaDestacada, aoClicarZona, estilo: estiloInicial = 'planta', trocarVisao }: Props) {
+  const [estiloEscolhido, setEstilo] = useState<EstiloMapa | null>(null);
+  const estilo = (trocarVisao && estiloEscolhido) || estiloInicial;
   const [hover, setHover] = useState<{ x: number; y: number; texto: string[] } | null>(null);
   const zonas = ZONAS.filter((z) => z.andar === andar);
   const vals = zonas.map((z) => valores?.[z.id] ?? 0);
@@ -289,6 +293,65 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
             <p key={i} className="text-on-surface-variant">
               {t}
             </p>
+          ))}
+        </div>
+      )}
+      {trocarVisao && <SeletorVisao andar={andar} estilo={estilo} mudar={setEstilo} />}
+    </div>
+  );
+}
+
+// ---------- visões do mapa (como as camadas do Google Maps) ----------
+
+const VISOES: { id: EstiloMapa; nome: string; dica: string }[] = [
+  { id: 'mapa', nome: 'Mapa', dica: 'Desenho limpo: corredores, lojas e estacionamento' },
+  { id: 'planta', nome: 'Planta', dica: 'Planta oficial do shopping, com o nome das lojas' },
+  { id: 'hibrido', nome: 'Híbrido', dica: 'Planta oficial com os corredores destacados por cima' },
+];
+
+function Miniatura({ andar, estilo }: { andar: Andar; estilo: EstiloMapa }) {
+  const f = FUNDO[andar];
+  const e = ESBOCO[andar];
+  return (
+    <svg viewBox="0 0 1000 560" className="block h-full w-full" aria-hidden>
+      <rect width="1000" height="560" fill="var(--viz-fundo)" />
+      {estilo !== 'mapa' && <image href={f.src} x={f.x} y={f.y} width={f.w} height={f.h} preserveAspectRatio="none" />}
+      {estilo === 'mapa' && (
+        <>
+          {e.contorno.map((p, i) => <path key={`c${i}`} d={caminho(p)} fill="var(--viz-loja)" fillRule="evenodd" />)}
+          {e.lojas.map((p, i) => <path key={`l${i}`} d={caminho(p)} fill="var(--viz-neutro)" />)}
+          {e.corredores.map((p, i) => <path key={`r${i}`} d={caminho(p)} fill="var(--viz-fundo)" fillRule="evenodd" />)}
+        </>
+      )}
+      {estilo === 'hibrido' && e.corredores.map((p, i) => <path key={`h${i}`} d={caminho(p)} fill="rgba(37, 99, 235, 0.18)" stroke="rgba(37, 99, 235, 0.8)" strokeWidth="6" fillRule="evenodd" />)}
+    </svg>
+  );
+}
+
+/** Botão no canto do mapa: mostra a visão atual e abre as 3 opções com miniatura. */
+export function SeletorVisao({ andar, estilo, mudar }: { andar: Andar; estilo: EstiloMapa; mudar: (e: EstiloMapa) => void }) {
+  const [aberto, setAberto] = useState(false);
+  const atual = VISOES.find((v) => v.id === estilo)!;
+  return (
+    <div className="absolute bottom-2 left-2 z-10 flex items-end gap-2">
+      <button onClick={() => setAberto(!aberto)} title="Trocar a visão do mapa" aria-expanded={aberto} className="group relative h-16 w-20 overflow-hidden rounded-md bg-surface shadow-md ring-2 ring-surface transition-shadow hover:ring-primary">
+        <Miniatura andar={andar} estilo={estilo} />
+        <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-gradient-to-t from-black/75 to-transparent pb-1 pt-3 text-[11px] font-semibold text-white">
+          <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+            <path d="M8 2 1.5 5.5 8 9l6.5-3.5zM1.5 8.5 8 12l6.5-3.5" strokeLinejoin="round" />
+          </svg>
+          {atual.nome}
+        </span>
+      </button>
+      {aberto && (
+        <div className="flex gap-2 rounded-lg bg-surface p-2 shadow-lg ring-1 ring-outline-variant">
+          {VISOES.map((v) => (
+            <button key={v.id} onClick={() => { mudar(v.id); setAberto(false); }} title={v.dica} className="flex w-20 flex-col items-center gap-1 text-[11px] font-medium">
+              <span className={`block h-12 w-full overflow-hidden rounded ring-2 transition-shadow ${estilo === v.id ? 'ring-primary' : 'ring-transparent hover:ring-outline-variant'}`}>
+                <Miniatura andar={andar} estilo={v.id} />
+              </span>
+              <span className={estilo === v.id ? 'text-primary' : 'text-on-surface-variant'}>{v.nome}</span>
+            </button>
           ))}
         </div>
       )}

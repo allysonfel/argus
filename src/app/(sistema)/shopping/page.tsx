@@ -163,7 +163,7 @@ function VisaoSimulada({ per }: { per: Periodo }) {
             </Link>
           }
         >
-          <Planta andar="T" valores={calor} />
+          <Planta andar="T" valores={calor} estilo="mapa" trocarVisao />
         </Secao>
         <Secao titulo="Corredores mais movimentados" descricao={`Passagens · ${per.rotulo} (estimativa)`}>
           <Tabela cabecalho={['Corredor', 'Passagens']} alinharDireita={[1]} linhas={corredores.slice(0, 8).map(([c, v]) => [c, formatarNumero(v)])} />

@@ -43,8 +43,10 @@ export default async function ComparativoPage({ searchParams }: { searchParams: 
   const hoje = agoraDemo().data;
   const escopoParam = um(sp.escopo) ?? 'shopping';
   const escopo = escopoDe(escopoParam);
-  const modo = um(sp.modo) ?? 'ano';
-  const dcId = um(sp.data) ?? 'criancas';
+  const dcId = um(sp.data) ?? '';
+  // "Data comercial" sem uma data escolhida = mesmo período do ano anterior.
+  const modoParam = um(sp.modo) ?? 'ano';
+  const modo = modoParam === 'data' && !dcId ? 'ano' : modoParam;
 
   let a: [string, string] = [um(sp.de) ?? somarDias(hoje, -27), um(sp.ate) ?? hoje];
   if (a[1] > hoje) a[1] = hoje;
@@ -122,13 +124,14 @@ export default async function ComparativoPage({ searchParams }: { searchParams: 
             ))}
           </optgroup>
         </SelectField>
-        <SelectField label="Tipo de comparação" name="modo" defaultValue={modo} className="w-56">
+        <SelectField label="Tipo de comparação" name="modo" defaultValue={modoParam} className="w-56">
           <option value="ano">Mesmo período do ano anterior</option>
           <option value="anterior">Período imediatamente anterior</option>
           <option value="data">Data comercial (ano a ano)</option>
           <option value="livre">Dois períodos quaisquer</option>
         </SelectField>
         <SelectField label="Data comercial" name="data" defaultValue={dcId} className="w-48">
+          <option value="">Sem data comercial</option>
           {datasComerciais(ano).map((d) => (
             <option key={d.id} value={d.id}>
               {d.nome}
@@ -143,7 +146,7 @@ export default async function ComparativoPage({ searchParams }: { searchParams: 
           Comparar
         </Button>
       </form>
-      <p className="-mt-3 mb-6 text-xs text-on-surface-variant">A data comercial vale só no tipo “Data comercial”; o período B digitado vale só em “Dois períodos quaisquer”. Nos outros tipos, B é calculado a partir de A.</p>
+      <p className="-mt-3 mb-6 text-xs text-on-surface-variant">A data comercial é opcional e vale só no tipo “Data comercial” (sem ela, compara com o mesmo período do ano anterior); o período B digitado vale só em “Dois períodos quaisquer”. Nos outros tipos, B é calculado a partir de A.</p>
 
       {insuficiente ? (
         <Alert variant="warning" className="mb-6">
