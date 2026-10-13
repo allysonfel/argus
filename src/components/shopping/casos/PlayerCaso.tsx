@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { caixaEm, fmtTempo, pe, type AreaCaso, type Caso, type PessoaCaso } from '@/lib/shopping/casos';
 import { corDoId } from '@/components/shopping/cameras/CameraFoco';
+import { baixarBlob, baixarUrl, fmtArquivoTempo, gravarCanvas, nomeArquivo, podeGravar } from '@/lib/shopping/gravacao';
 
 export type Desenho = (ctx: CanvasRenderingContext2D, t: number, w: number, h: number) => void;
 export type Marca = { t: number; rotulo: string; tom?: string };
@@ -19,10 +20,12 @@ type Props = {
   sincronizar?: React.RefObject<HTMLVideoElement | null>[];
   rodape?: ReactNode;
   autoPlay?: boolean;
+  /** Trecho que o botão Baixar grava com as marcações (padrão: o vídeo inteiro). */
+  trecho?: { inicio: number; fim: number; rotulo: string };
 };
 
 /** Vídeo real + canvas por cima, desenhado no tempo do vídeo. */
-export function PlayerCaso({ urlMotor, caso, desenhar, irPara, onTempo, marcas = [], sincronizar = [], rodape, autoPlay = true }: Props) {
+export function PlayerCaso({ urlMotor, caso, desenhar, irPara, onTempo, marcas = [], sincronizar = [], rodape, autoPlay = true, trecho }: Props) {
   const video = useRef<HTMLVideoElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const desenharRef = useRef(desenhar);
@@ -105,6 +108,72 @@ export function PlayerCaso({ urlMotor, caso, desenhar, irPara, onTempo, marcas =
   function alternarTelaCheia() {
     if (document.fullscreenElement) void document.exitFullscreen();
     else void tela.current?.requestFullscreen?.().catch(() => {});
+  }
+
+  // ---------- baixar ----------
+  const [menuBaixar, setMenuBaixar] = useState(false);
+  const [gravando, setGravando] = useState<number | null>(null); // 0-1
+  const [erroBaixar, setErroBaixar] = useState<string | null>(null);
+  const cancelar = useRef(false);
+  const ini = Math.max(0, trecho?.inicio ?? 0);
+  const fim = Math.min(caso.duracao_s, trecho?.fim ?? caso.duracao_s);
+  const rotuloTrecho = trecho?.rotulo ?? 'video-inteiro';
+
+  /** Toca o trecho num vídeo escondido, desenha quadro + marcações num canvas e grava. */
+  async function baixarTrecho() {
+    setMenuBaixar(false);
+    setErroBaixar(null);
+    cancelar.current = false;
+    const v = document.createElement('video');
+    v.crossOrigin = 'anonymous';
+    v.muted = true;
+    v.playsInline = true;
+    v.src = `${urlMotor}/casos/${caso.video}`;
+    try {
+      await new Promise<void>((ok, falha) => {
+        v.onloadeddata = () => ok();
+        v.onerror = () => falha(new Error('não carregou o vídeo'));
+      });
+      v.currentTime = ini;
+      await new Promise((ok) => (v.onseeked = ok));
+      // Vídeo pequeno (CCTV 384x288) é gravado ampliado, pra marcação ficar legível.
+      const escala = v.videoWidth < 800 ? 2 : 1;
+      const c = document.createElement('canvas');
+      c.width = v.videoWidth * escala;
+      c.height = v.videoHeight * escala;
+      const ctx = c.getContext('2d')!;
+      const gravacao = gravarCanvas(c);
+      setGravando(0);
+      await v.play();
+      await new Promise<void>((ok) => {
+        const passo = () => {
+          ctx.drawImage(v, 0, 0, c.width, c.height);
+          desenharRef.current?.(ctx, v.currentTime, c.width, c.height);
+          setGravando(Math.min(1, (v.currentTime - ini) / Math.max(0.1, fim - ini)));
+          if (cancelar.current || v.currentTime >= fim || v.ended) return ok();
+          requestAnimationFrame(passo);
+        };
+        requestAnimationFrame(passo);
+      });
+      v.pause();
+      const blob = await gravacao.parar();
+      if (!cancelar.current) baixarBlob(blob, nomeArquivo([caso.nome, rotuloTrecho, fmtArquivoTempo(ini)], gravacao.ext));
+    } catch (e) {
+      setErroBaixar(`Não foi possível gravar o trecho (${e instanceof Error ? e.message : e}).`);
+    } finally {
+      v.removeAttribute('src');
+      setGravando(null);
+    }
+  }
+
+  async function baixarOriginal() {
+    setMenuBaixar(false);
+    setErroBaixar(null);
+    try {
+      await baixarUrl(`${urlMotor}/casos/${caso.video}`, nomeArquivo([caso.nome, 'original'], 'mp4'));
+    } catch (e) {
+      setErroBaixar(`Não foi possível baixar o vídeo (${e instanceof Error ? e.message : e}).`);
+    }
   }
 
   function mudarVel() {
@@ -194,7 +263,47 @@ export function PlayerCaso({ urlMotor, caso, desenhar, irPara, onTempo, marcas =
         <button onClick={alternarTelaCheia} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-outline-variant text-on-surface" title="Tela cheia" aria-label="Tela cheia">
           <IconeTelaCheia saindo={false} />
         </button>
+        <div className="relative shrink-0">
+          <button
+            onClick={() => setMenuBaixar(!menuBaixar)}
+            disabled={gravando !== null}
+            className="flex h-7 items-center gap-1 rounded-sm border border-outline-variant px-2 text-xs font-medium text-on-surface disabled:opacity-60"
+            title="Baixar vídeo"
+          >
+            <IconeBaixar />
+            {gravando !== null ? `${Math.round(gravando * 100)}%` : 'Baixar'}
+          </button>
+          {menuBaixar && (
+            <div className="absolute bottom-full right-0 z-30 mb-1.5 w-72 rounded-md border border-outline-variant bg-surface p-1 shadow-lg">
+              {podeGravar() && (
+                <button onClick={baixarTrecho} className="block w-full rounded-sm px-3 py-2 text-left hover:bg-surface-container-low">
+                  <span className="block text-sm font-medium text-on-surface">Trecho com as marcações</span>
+                  <span className="block text-xs text-on-surface-variant">
+                    {fmtTempo(ini)} a {fmtTempo(fim)} · grava em tempo real ({Math.round(fim - ini)} s)
+                  </span>
+                </button>
+              )}
+              <button onClick={baixarOriginal} className="block w-full rounded-sm px-3 py-2 text-left hover:bg-surface-container-low">
+                <span className="block text-sm font-medium text-on-surface">Vídeo original</span>
+                <span className="block text-xs text-on-surface-variant">o arquivo inteiro da câmera, sem marcações (.mp4)</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+      {gravando !== null && (
+        <div className="mt-2 flex items-center gap-3 rounded-sm bg-primary/10 px-3 py-2 text-xs text-on-surface">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-error" />
+          Gravando o trecho com as marcações… {Math.round(gravando * 100)}%
+          <span className="h-1.5 flex-1 rounded-full bg-surface-container">
+            <span className="block h-1.5 rounded-full bg-primary" style={{ width: `${gravando * 100}%` }} />
+          </span>
+          <button onClick={() => (cancelar.current = true)} className="font-medium text-primary hover:underline">
+            Cancelar
+          </button>
+        </div>
+      )}
+      {erroBaixar && <p className="mt-2 text-xs text-error">{erroBaixar}</p>}
       <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-[11px] text-on-surface-variant">
         <span>
           {caso.nome}
@@ -293,5 +402,11 @@ function IconeTelaCheia({ saindo }: { saindo: boolean }) {
     <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M6 2v4H2M10 2v4h4M6 14v-4H2M10 14v-4h4" /></svg>
   ) : (
     <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4" /></svg>
+  );
+}
+
+function IconeBaixar() {
+  return (
+    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M2.5 13.5h11" /></svg>
   );
 }

@@ -117,7 +117,7 @@ export function AoVivoClient({ urlMotor }: { urlMotor: string }) {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Pessoas nas câmeras agora" value={totalPessoas} hint="Soma das imagens de todas as câmeras" tone="primary" />
-        <StatCard label="Passagens contadas" value={totalPassagens} hint="Cruzamentos das linhas de contagem" />
+        <StatCard label="Passagens contadas" value={totalPassagens} hint="Linhas amarelas, desde que o motor ligou. Só conta nas câmeras abertas por alguém: as outras analisam 1 imagem a cada 10 s, pouco pra seguir quem cruza" />
         <StatCard
           label="Mais movimentada agora"
           value={maisMovimentada ? pessoasNaImagem(maisMovimentada) : '-'}

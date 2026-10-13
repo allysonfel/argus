@@ -375,6 +375,7 @@ export function CasoCrianca({ urlMotor, usuario }: { urlMotor: string; usuario: 
                 urlMotor={urlMotor}
                 caso={sel.caso}
                 irPara={irPara}
+                trecho={{ inicio: sel.p.entrada - 2, fim: sel.p.saida + 2, rotulo: 'candidato' }}
                 desenhar={(ctx, t, w, h) => desenharPessoas(ctx, sel.caso.pessoas, t, w, h, { destaque: new Set([sel.p.id]), esmaecer: true, rastroS: 6, rotular: (p) => (p.id === sel.p.id ? 'candidato' : null) })}
               />
               <ul className="mt-3 flex flex-col gap-1 text-xs text-on-surface-variant">

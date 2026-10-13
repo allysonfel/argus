@@ -97,6 +97,14 @@ EXIBIR_SUMIDO_DURACAO_MIN_S = 0.6
 # passar das pontas (fração do comprimento da linha).
 LINHA_FAIXA_MORTA = 0.008
 LINHA_TOLERANCIA_PONTAS = 0.08
+# Linhas com contar_quem_surge: pessoa que aparece pela primeira vez a até
+# LINHA_SURGIU_DISTANCIA da linha e, nos primeiros LINHA_SURGIU_JANELA_S, se
+# afasta dela pelo menos LINHA_SURGIU_AFASTAR (frações da largura da imagem)
+# conta como tendo cruzado. Quem surge e fica parado (ex.: esperando ao lado
+# da escada) não conta.
+LINHA_SURGIU_DISTANCIA = 0.20
+LINHA_SURGIU_JANELA_S = 2.5
+LINHA_SURGIU_AFASTAR = 0.05
 
 
 def _iou_matriz(caixas: np.ndarray) -> np.ndarray:
@@ -148,7 +156,11 @@ class ContadorLinha:
     "entrada" = terminar do lado em que o produto vetorial com
     (fim - inicio) é negativo."""
 
-    def __init__(self, inicio: tuple[float, float], fim: tuple[float, float], largura: int) -> None:
+    def __init__(self, inicio: tuple[float, float], fim: tuple[float, float], largura: int, contar_quem_surge: bool = False) -> None:
+        self.contar_quem_surge = contar_quem_surge
+        self.largura = largura
+        # ID -> (instante em que surgiu, distância com sinal naquele momento)
+        self._surgiu: dict[int, tuple[float, float]] = {}
         self.a = np.array(inicio, dtype=float)
         self.b = np.array(fim, dtype=float)
         self.v = self.b - self.a
@@ -164,9 +176,30 @@ class ContadorLinha:
         d = p - self.a
         return float(d[0] * self.v[1] - d[1] * self.v[0]) / self.comprimento
 
-    def atualizar(self, tid: int, pe: tuple[float, float]) -> None:
+    def _na_extensao(self, p: np.ndarray) -> bool:
+        u = float(np.dot(p - self.a, self.v)) / self.comprimento**2
+        return -LINHA_TOLERANCIA_PONTAS <= u <= 1 + LINHA_TOLERANCIA_PONTAS
+
+    def _contar(self, lado: bool) -> None:
+        if lado:
+            self.entradas += 1
+        else:
+            self.saidas += 1
+
+    def atualizar(self, tid: int, pe: tuple[float, float], ts: float = 0.0) -> None:
         p = np.array(pe, dtype=float)
         dist = self._distancia(p)
+        novo = tid not in self._lado and tid not in self._surgiu
+        if self.contar_quem_surge:
+            if novo and abs(dist) <= LINHA_SURGIU_DISTANCIA * self.largura and self._na_extensao(p):
+                self._surgiu[tid] = (ts, dist)
+            elif tid in self._surgiu:
+                t0, d0 = self._surgiu[tid]
+                if ts - t0 > LINHA_SURGIU_JANELA_S or (dist < 0) != (d0 < 0):
+                    del self._surgiu[tid]  # demorou (estava parado) ou cruzou à vista
+                elif abs(dist) - abs(d0) >= LINHA_SURGIU_AFASTAR * self.largura:
+                    del self._surgiu[tid]
+                    self._contar(dist < 0)
         if abs(dist) < self.faixa_morta:
             return  # em cima da linha: espera definir o lado
         lado = dist < 0
@@ -180,13 +213,12 @@ class ContadorLinha:
         x = p0 + (p - p0) * (d0 / (d0 - dist))
         u = float(np.dot(x - self.a, self.v)) / self.comprimento**2
         if -LINHA_TOLERANCIA_PONTAS <= u <= 1 + LINHA_TOLERANCIA_PONTAS:
-            if lado:
-                self.entradas += 1
-            else:
-                self.saidas += 1
+            self._surgiu.pop(tid, None)
+            self._contar(lado)
 
     def esquecer(self, vivos: set[int]) -> None:
         self._lado = {tid: v for tid, v in self._lado.items() if tid in vivos}
+        self._surgiu = {tid: v for tid, v in self._surgiu.items() if tid in vivos}
 
     def renomear(self, a: int, b: int) -> None:
         """IDs destrocados pelo Re-ID: o lado de cada um vai junto."""
@@ -195,6 +227,11 @@ class ContadorLinha:
             self._lado[b] = la
         if lb is not None:
             self._lado[a] = lb
+        sa, sb = self._surgiu.pop(a, None), self._surgiu.pop(b, None)
+        if sa is not None:
+            self._surgiu[b] = sa
+        if sb is not None:
+            self._surgiu[a] = sb
 
 
 class Rastreador:
@@ -288,7 +325,7 @@ class RegrasCamera:
     def _montar_geometria(self, largura: int, altura: int) -> None:
         self._tamanho = (largura, altura)
         self._linhas = {
-            l.id: ContadorLinha((l.inicio[0] * largura, l.inicio[1] * altura), (l.fim[0] * largura, l.fim[1] * altura), largura)
+            l.id: ContadorLinha((l.inicio[0] * largura, l.inicio[1] * altura), (l.fim[0] * largura, l.fim[1] * altura), largura, l.contar_quem_surge)
             for l in self.camera.linhas
         }
         self._zonas = {
@@ -331,7 +368,7 @@ class RegrasCamera:
             t.ultimo_ts = ts
             t.caixa = (x1, y1, x2, y2)
             for linha in self._linhas.values():
-                linha.atualizar(tid, pe)
+                linha.atualizar(tid, pe, ts)
             t.caminho.append((round(pe[0] / largura, 4), round(pe[1] / altura, 4)))
             if not t.contado and t.duracao_s >= self.cfg.min_track_duration_s:
                 t.contado = True

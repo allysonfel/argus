@@ -122,6 +122,9 @@ class Linha:
     nome: str
     inicio: tuple[float, float]
     fim: tuple[float, float]
+    # Conta também quem SURGE perto da linha já do outro lado e se afasta dela
+    # (pessoa que cruzou escondida atrás de outras, ex.: grupo na escada).
+    contar_quem_surge: bool = False
 
 
 @dataclass
@@ -159,7 +162,7 @@ class CameraConfig:
     @classmethod
     def de_dict(cls, d: dict) -> "CameraConfig":
         d = dict(d)
-        d["linhas"] = [Linha(id=l["id"], nome=l["nome"], inicio=tuple(l["inicio"]), fim=tuple(l["fim"])) for l in d.get("linhas", [])]
+        d["linhas"] = [Linha(id=l["id"], nome=l["nome"], inicio=tuple(l["inicio"]), fim=tuple(l["fim"]), contar_quem_surge=bool(l.get("contar_quem_surge", False))) for l in d.get("linhas", [])]
         d["zonas"] = [Zona(id=z["id"], nome=z["nome"], poligono=[tuple(p) for p in z["poligono"]]) for z in d.get("zonas", [])]
         conhecidos = cls.__dataclass_fields__.keys()
         return cls(**{k: v for k, v in d.items() if k in conhecidos})

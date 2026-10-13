@@ -22,7 +22,8 @@
           "fim": [
             0.44,
             0.4
-          ]
+          ],
+          "contar_quem_surge": true
         }
       ],
       "zonas": [
