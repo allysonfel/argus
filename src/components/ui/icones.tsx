@@ -176,13 +176,6 @@ export const IconeCalor = (p: IconeProps) => (
   </Base>
 );
 
-export const IconeCorredor = (p: IconeProps) => (
-  <Base {...p}>
-    <path d="M3 4h7v16H3zM14 4h7v16h-7z" />
-    <path d="M12 6v2M12 11v2M12 16v2" />
-  </Base>
-);
-
 export const IconeZonaMorta = (p: IconeProps) => (
   <Base {...p}>
     <rect x="3" y="3" width="18" height="18" rx="1" />

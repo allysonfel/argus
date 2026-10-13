@@ -37,7 +37,7 @@ type Props = {
   formatarValor?: 'densidade' | 'indice' | 'pessoas';
   destaque?: string[];
   selecionada?: string;
-  linkZona?: string; // ex.: "/shopping/corredores?zona=" (o id da zona é concatenado)
+  linkZona?: string; // prefixo do link de cada zona (o id da zona é concatenado)
   setas?: Seta[];
   marcadores?: Marcador[];
   mostrarCameras?: boolean;

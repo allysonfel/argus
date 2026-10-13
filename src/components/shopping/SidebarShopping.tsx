@@ -11,7 +11,6 @@ import {
   IconeVisaoGeral,
   IconeCamera,
   IconeCalor,
-  IconeCorredor,
   IconeZonaMorta,
   IconeComparar,
   IconeRotas,
@@ -32,7 +31,6 @@ export const GRUPOS = [
     titulo: 'Fluxo e espaços',
     abas: [
       { href: '/shopping/mapa-calor', label: 'Mapa de calor', Icone: IconeCalor },
-      { href: '/shopping/corredores', label: 'Corredores e lojas', Icone: IconeCorredor },
       { href: '/shopping/zonas-mortas', label: 'Zonas mortas', Icone: IconeZonaMorta },
       { href: '/shopping/comparativo', label: 'Comparativo de períodos', Icone: IconeComparar },
       { href: '/shopping/rotas', label: 'Rotas e fluxo', Icone: IconeRotas },

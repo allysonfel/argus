@@ -122,22 +122,3 @@ export const POSICAO_NA_PLANTA: Record<string, { andar: Andar; x: number; y: num
   'demo-hiper-autoatendimento': { andar: 'T', x: 520, y: 380, rotulo: 'CAM 08' },
   'demo-area-eventos': { andar: 'P1', x: 500, y: 450, rotulo: 'CAM 15' },
 };
-
-// ---------- configuração dos casos ----------
-
-/** Loja da Ala Norte (CAM 03 corredor + CAM 04 fachada, CCTV real do
- * CAVIAR): vitrine e porta desenhadas a partir do gabarito manual. */
-export const LOJA = {
-  camera: 'demo-caviar-corredor',
-  cameraFachada: 'demo-caviar-fachada',
-  nomeLoja: 'Loja da Ala Norte',
-  // Vitrine: só a parte mais perto da câmera; lá no fundo quem anda em
-  // direção à câmera parece parado (perspectiva), então não dá pra medir.
-  vitrine: { id: 'vitrine', nome: 'Frente da vitrine', poligono: [[0.17, 0.22], [0.42, 0.22], [0.44, 0.6], [0.19, 0.6]], cor: '#10b981' } as AreaCaso,
-  // Faixa encostada na fachada (lado esquerdo), onde ficam as portas.
-  porta: { id: 'porta', nome: 'Fachada / portas da loja', poligono: [[0.0, 0.18], [0.23, 0.18], [0.33, 1.0], [0.0, 1.0]], cor: '#f59e0b' } as AreaCaso,
-  /** Ficou na frente da vitrine pelo menos isto (segundos somados). */
-  permanenciaMinS: 15,
-  // Contagem feita à mão pelos pesquisadores do CAVIAR, quadro a quadro.
-  gabarito: { pessoas: 17, pararamVitrine: 3, entradas: 7, saidas: 5 },
-};
