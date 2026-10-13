@@ -137,9 +137,7 @@ export function CasoCrianca({ urlMotor, usuario }: { urlMotor: string; usuario: 
   const totalPessoas = casos?.reduce((s, c) => s + c.pessoas.length, 0) ?? 0;
   const totalCriancas = casos?.reduce((s, c) => s + c.pessoas.filter((p) => p.altura_cm != null && p.altura_cm <= 135).length, 0) ?? 0;
 
-  // A busca roda enquanto a pessoa monta a descrição (prévia no botão),
-  // mas os resultados só aparecem ao clicar em Buscar.
-  const previa = useMemo(() => (casos ? procurar(casos, { q, andar, incluirSemEstatura }) : []), [q, incluirSemEstatura, casos, andar]);
+  // Os resultados só aparecem ao clicar em Buscar.
   const [buscada, setBuscada] = useState<Busca | null>(null);
   const resultados = useMemo(() => (casos && buscada ? procurar(casos, buscada) : []), [casos, buscada]);
   const mudouDesdeBusca = !!buscada && JSON.stringify(buscada) !== JSON.stringify({ q, andar, incluirSemEstatura });
@@ -192,73 +190,127 @@ export function CasoCrianca({ urlMotor, usuario }: { urlMotor: string; usuario: 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <Secao titulo="Descreva a criança" descricao={casos ? `Procurando em ${casos.length} câmeras · ${totalPessoas} pessoas registradas (${totalCriancas} com altura de criança)` : 'Carregando as câmeras…'} className="xl:col-span-2">
           <form
-            className="flex flex-col gap-5"
+            className="flex flex-col gap-4"
             onSubmit={(e) => {
               e.preventDefault();
               buscar();
             }}
           >
-            <Passo n={1} titulo="Idade aparente">
-              {FAIXAS.map((f) => (
-                <Chip key={f.id} ativo={q.faixa === f.id} onClick={() => mudar({ faixa: q.faixa === f.id ? undefined : f.id })} titulo={f.dica}>
-                  {f.rotulo} <span className="opacity-70">{f.dica}</span>
-                </Chip>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Seletor
+                rotulo="Idade aparente"
+                valor={q.faixa ? FAIXAS.find((f) => f.id === q.faixa)!.rotulo : 'Qualquer idade'}
+                detalhe={q.faixa ? FAIXAS.find((f) => f.id === q.faixa)!.dica : undefined}
+                icone={<IconePessoa escala={q.faixa === 'crianca' ? 0.62 : q.faixa === 'adolescente' ? 0.82 : 1} />}
+              >
+                {(fechar) => (
+                  <div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-4">
+                    {[...FAIXAS.map((f) => ({ id: f.id as Faixa | undefined, rotulo: f.rotulo, dica: f.dica, escala: f.id === 'crianca' ? 0.62 : f.id === 'adolescente' ? 0.82 : 1 })), { id: undefined, rotulo: 'Qualquer', dica: 'todas as idades', escala: 0 }].map((o) => (
+                      <button
+                        key={o.rotulo}
+                        type="button"
+                        onClick={() => {
+                          mudar({ faixa: o.id });
+                          fechar();
+                        }}
+                        className={cn('flex flex-col items-center gap-1 rounded-md border px-2 py-3 text-center transition-colors', q.faixa === o.id ? 'border-primary bg-primary/10 ring-2 ring-primary/30' : 'border-outline-variant hover:bg-surface-container-low')}
+                      >
+                        <span className="flex h-12 items-end text-on-surface-variant">{o.escala ? <IconePessoa escala={o.escala} grande /> : <span className="text-2xl leading-none">∗</span>}</span>
+                        <span className="text-sm font-semibold text-on-surface">{o.rotulo}</span>
+                        <span className="text-[11px] text-on-surface-variant">{o.dica}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </Seletor>
+              <Seletor
+                rotulo="Onde procurar"
+                valor={andar === 'T' ? 'Térreo' : andar === 'P1' ? 'Piso 1' : 'Shopping todo'}
+                detalhe={incluirSemEstatura ? 'inclui câmeras vistas de cima' : undefined}
+                icone={<IconeLocal />}
+              >
+                {(fechar) => (
+                  <div className="flex flex-col gap-1 p-2">
+                    {([['', 'Shopping todo'], ['T', 'Térreo'], ['P1', 'Piso 1']] as const).map(([v, nome]) => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => {
+                          setAndar(v);
+                          fechar();
+                        }}
+                        className={cn('flex items-center justify-between rounded-md px-3 py-2 text-left text-sm', andar === v ? 'bg-primary/10 font-semibold text-on-surface' : 'text-on-surface hover:bg-surface-container-low')}
+                      >
+                        {nome}
+                        {andar === v && <span className="text-primary">✓</span>}
+                      </button>
+                    ))}
+                    <label className="mt-1 flex items-start gap-2 border-t border-outline-variant px-3 pt-2 text-xs text-on-surface-variant">
+                      <input type="checkbox" className="mt-0.5" checked={incluirSemEstatura} onChange={(e) => setIncluirSemEstatura(e.target.checked)} />
+                      Incluir câmeras vistas de cima (lá não dá pra medir a altura, então aparecem adultos também)
+                    </label>
+                  </div>
+                )}
+              </Seletor>
+              {(['cima', 'baixo'] as const).map((parte) => (
+                <Seletor
+                  key={parte}
+                  rotulo={parte === 'cima' ? 'Roupa de cima' : 'Roupa de baixo'}
+                  valor={q[parte] ? q[parte]!.charAt(0).toUpperCase() + q[parte]!.slice(1) : 'Qualquer cor'}
+                  detalhe={parte === 'cima' ? 'blusa, camiseta, casaco' : 'calça, short, saia'}
+                  icone={<span className="block h-6 w-6 rounded-full border border-black/15" style={q[parte] ? { background: HEX[q[parte]!] } : { background: 'conic-gradient(#c62828, #f9c80e, #2e7d32, #1565c0, #6a1b9a, #c62828)' }} />}
+                >
+                  {(fechar) => (
+                    <div className="p-3">
+                      <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                        {CORES.map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => {
+                              mudar({ [parte]: c });
+                              fechar();
+                            }}
+                            className={cn('flex flex-col items-center gap-1 rounded-md p-1.5 text-[11px] capitalize text-on-surface-variant hover:bg-surface-container-low', q[parte] === c && 'bg-primary/10 font-semibold text-on-surface')}
+                          >
+                            <span className={cn('block h-9 w-9 rounded-full border border-black/15 shadow-sm', q[parte] === c && 'ring-2 ring-primary ring-offset-2 ring-offset-surface')} style={{ background: HEX[c] }} />
+                            {c}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          mudar({ [parte]: undefined });
+                          fechar();
+                        }}
+                        className="mt-2 w-full rounded-md border border-outline-variant py-1.5 text-xs text-on-surface hover:bg-surface-container-low"
+                      >
+                        Qualquer cor / não sabe
+                      </button>
+                    </div>
+                  )}
+                </Seletor>
               ))}
-              <Chip ativo={!q.faixa} onClick={() => mudar({ faixa: undefined })}>
-                Qualquer idade
-              </Chip>
-            </Passo>
-            {(['cima', 'baixo'] as const).map((parte, k) => (
-              <Passo key={parte} n={2 + k} titulo={parte === 'cima' ? 'Roupa de cima' : 'Roupa de baixo'} dica={parte === 'cima' ? 'blusa, camiseta, casaco, vestido' : 'calça, short, saia, bermuda'}>
-                {CORES.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    title={c}
-                    onClick={() => mudar({ [parte]: q[parte] === c ? undefined : c })}
-                    className={cn('flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs capitalize transition-all', q[parte] === c ? 'border-primary bg-primary/10 font-semibold text-on-surface ring-2 ring-primary/30' : 'border-outline-variant text-on-surface hover:bg-surface-container-low')}
-                  >
-                    <span className="inline-block h-3.5 w-3.5 rounded-full border border-black/20" style={{ background: HEX[c] }} />
-                    {c}
-                  </button>
-                ))}
-              </Passo>
-            ))}
-            <Passo n={4} titulo="Onde procurar">
-              {([['', 'Shopping todo'], ['T', 'Térreo'], ['P1', 'Piso 1']] as const).map(([v, nome]) => (
-                <Chip key={v} ativo={andar === v} onClick={() => setAndar(v)}>
-                  {nome}
-                </Chip>
-              ))}
-              {q.faixa && (
-                <label className="ml-1 flex items-center gap-2 text-xs text-on-surface-variant">
-                  <input type="checkbox" checked={incluirSemEstatura} onChange={(e) => setIncluirSemEstatura(e.target.checked)} />
-                  Incluir câmeras vistas de cima (sem altura: aparecem adultos também)
-                </label>
-              )}
-            </Passo>
-
-            <div className="flex flex-col gap-2 rounded-sm bg-surface-container-low p-3">
-              <label className="block">
-                <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-on-surface-variant">
-                  O que a família informou <span className="font-normal normal-case tracking-normal">(opcional, vai marcando os campos acima)</span>
-                </span>
-                <input
-                  value={texto}
-                  onChange={(e) => digitar(e.target.value)}
-                  className="h-10 w-full rounded-sm border border-outline-variant bg-surface px-3 text-sm text-on-surface outline-none focus:border-primary"
-                  placeholder="Ex.: menina de blusa rosa e calça preta"
-                />
-              </label>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-on-surface-variant">
-                Exemplos:
-                {EXEMPLOS.map((ex) => (
-                  <button key={ex} type="button" onClick={() => digitar(ex)} className="rounded-full border border-outline-variant bg-surface px-2.5 py-1 text-on-surface hover:bg-surface-container" disabled={!casos}>
-                    {ex}
-                  </button>
-                ))}
-              </div>
             </div>
+
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-medium text-on-surface-variant">O que a família informou (opcional)</span>
+              <input
+                value={texto}
+                onChange={(e) => digitar(e.target.value)}
+                className="h-11 w-full rounded-md border border-outline-variant bg-surface px-3 text-sm text-on-surface outline-none focus:border-primary"
+                placeholder="Ex.: menina de blusa rosa e calça preta"
+              />
+              <span className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-on-surface-variant">
+                O texto preenche os campos acima. Exemplos:
+                {EXEMPLOS.map((ex) => (
+                  <button key={ex} type="button" onClick={() => digitar(ex)} className="text-primary hover:underline" disabled={!casos}>
+                    “{ex}”
+                  </button>
+                ))}
+              </span>
+            </label>
 
             <div className="flex flex-wrap items-center gap-3">
               <Button type="submit" className="h-12 min-w-56 flex-1 text-base" disabled={!casos}>
@@ -267,7 +319,6 @@ export function CasoCrianca({ urlMotor, usuario }: { urlMotor: string; usuario: 
                   Buscar nas câmeras
                 </span>
               </Button>
-              <span className="text-xs text-on-surface-variant">{casos ? `${previa.length} pessoa(s) compatível(is) com esta descrição` : ''}</span>
               {(q.cima || q.baixo || q.faixa !== 'crianca' || texto || andar) && (
                 <button
                   type="button"
@@ -403,30 +454,62 @@ function descrever(q: Consulta): string {
   return `filtros: ${partes.join(', ')}`;
 }
 
-function Passo({ n, titulo, dica, children }: { n: number; titulo: string; dica?: string; children: React.ReactNode }) {
+/** Campo da descrição: mostra a escolha atual e abre um painel com as opções. */
+function Seletor({ rotulo, valor, detalhe, icone, children }: { rotulo: string; valor: string; detalhe?: string; icone: React.ReactNode; children: (fechar: () => void) => React.ReactNode }) {
+  const [aberto, setAberto] = useState(false);
+  const caixa = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!aberto) return;
+    const fora = (e: MouseEvent) => {
+      if (!caixa.current?.contains(e.target as Node)) setAberto(false);
+    };
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setAberto(false);
+    document.addEventListener('mousedown', fora);
+    document.addEventListener('keydown', esc);
+    return () => {
+      document.removeEventListener('mousedown', fora);
+      document.removeEventListener('keydown', esc);
+    };
+  }, [aberto]);
   return (
-    <div className="flex gap-3">
-      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-on-primary">{n}</span>
-      <div className="min-w-0 flex-1">
-        <p className="mb-2 text-sm font-semibold text-on-surface">
-          {titulo} {dica && <span className="text-xs font-normal text-on-surface-variant">· {dica}</span>}
-        </p>
-        <div className="flex flex-wrap items-center gap-1.5">{children}</div>
-      </div>
+    <div ref={caixa} className="relative">
+      <button
+        type="button"
+        onClick={() => setAberto(!aberto)}
+        aria-expanded={aberto}
+        className={cn('flex w-full items-center gap-3 rounded-md border bg-surface px-3 py-2.5 text-left transition-colors', aberto ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant hover:border-on-surface-variant')}
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-container-low text-on-surface-variant">{icone}</span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[11px] font-medium uppercase tracking-wide text-on-surface-variant">{rotulo}</span>
+          <span className="block truncate text-sm font-semibold text-on-surface">
+            {valor}
+            {detalhe && <span className="ml-1.5 text-xs font-normal text-on-surface-variant">{detalhe}</span>}
+          </span>
+        </span>
+        <svg viewBox="0 0 16 16" className={cn('h-4 w-4 shrink-0 text-on-surface-variant transition-transform', aberto && 'rotate-180')} fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m4 6 4 4 4-4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
+      {aberto && <div className="absolute left-0 right-0 top-full z-30 mt-1.5 min-w-72 rounded-md border border-outline-variant bg-surface shadow-lg sm:right-auto sm:w-[28rem]">{children(() => setAberto(false))}</div>}
     </div>
   );
 }
 
-function Chip({ ativo, onClick, titulo, children }: { ativo: boolean; onClick: () => void; titulo?: string; children: React.ReactNode }) {
+function IconePessoa({ escala, grande }: { escala: number; grande?: boolean }) {
+  const h = (grande ? 44 : 22) * escala;
   return (
-    <button
-      type="button"
-      title={titulo}
-      onClick={onClick}
-      className={cn('rounded-full border px-3 py-1 text-xs', ativo ? 'border-primary bg-primary/10 font-semibold text-on-surface ring-2 ring-primary/30' : 'border-outline-variant text-on-surface hover:bg-surface-container-low')}
-    >
-      {children}
-    </button>
+    <svg viewBox="0 0 24 48" style={{ height: h, width: h / 2 }} fill="currentColor" aria-hidden>
+      <circle cx="12" cy="6" r="5" />
+      <path d="M5 14a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v12h-3v20h-3.5V30h-1v16H8V26H5z" />
+    </svg>
+  );
+}
+
+function IconeLocal() {
+  return (
+    <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+      <path d="M10 18s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10z" />
+      <circle cx="10" cy="8" r="2.2" />
+    </svg>
   );
 }
 
