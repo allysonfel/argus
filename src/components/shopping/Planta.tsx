@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { CAMERAS, CINEMA, ENTRADAS, ESCADAS, LOJAS, ZONAS, type Andar } from '@/lib/shopping/planta';
+import { CAMERAS, ENTRADAS, ESCADAS, FUNDO, LOJAS, ZONAS, type Andar } from '@/lib/shopping/planta';
 
 // Escala sequencial de um matiz só (azul, claro -> escuro), da paleta de
 // referência do guia de visualização. Claro = pouco movimento.
@@ -70,27 +70,12 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
       <svg viewBox="0 0 1000 560" className="block h-auto w-full select-none" role="img" aria-label={`Planta do ${andar === 'T' ? 'Térreo' : 'Piso 1'}`}>
         <rect x="0" y="0" width="1000" height="560" fill="var(--viz-fundo)" rx="6" />
 
-        {/* Lojas (não monitoradas por dentro: só contorno) */}
-        {LOJAS.filter((l) => l.andar === andar).map((l) => (
-          <g key={l.id}>
-            <rect x={l.rect.x} y={l.rect.y} width={l.rect.w} height={l.rect.h} rx="3" fill={l.id === lojaDestacada ? 'var(--viz-loja-destaque)' : 'var(--viz-loja)'} stroke="var(--viz-linha)" strokeWidth={l.id === lojaDestacada ? 2.5 : 1} />
-            <text x={l.rect.x + l.rect.w / 2} y={l.rect.y + l.rect.h / 2 - 4} textAnchor="middle" className="fill-[var(--viz-texto)] text-[13px] font-semibold">
-              {l.nome}
-            </text>
-            <text x={l.rect.x + l.rect.w / 2} y={l.rect.y + l.rect.h / 2 + 10} textAnchor="middle" className="fill-[var(--viz-texto-sec)] text-[10px]">
-              {l.categoria}
-            </text>
-          </g>
-        ))}
-
-        {andar === 'P1' && (
-          <g>
-            <rect x={CINEMA.x} y={CINEMA.y} width={CINEMA.w} height={CINEMA.h} rx="3" fill="var(--viz-loja)" stroke="var(--viz-linha)" />
-            <text x={CINEMA.x + CINEMA.w / 2} y={CINEMA.y + CINEMA.h / 2 + 4} textAnchor="middle" className="fill-[var(--viz-texto)] text-[12px] font-semibold">
-              Cinema
-            </text>
-          </g>
-        )}
+        {/* Planta oficial do shopping de fundo (as lojas já vêm com nome nela) */}
+        <image href={FUNDO[andar].src} x={FUNDO[andar].x} y={FUNDO[andar].y} width={FUNDO[andar].w} height={FUNDO[andar].h} preserveAspectRatio="none" />
+        {lojaDestacada &&
+          LOJAS.filter((l) => l.id === lojaDestacada && l.andar === andar).map((l) => (
+            <rect key={l.id} x={l.rect.x} y={l.rect.y} width={l.rect.w} height={l.rect.h} rx="3" fill="var(--viz-loja-destaque)" fillOpacity="0.35" stroke="var(--viz-selecao)" strokeWidth="2.5" />
+          ))}
 
         {/* Zonas de corredor (as únicas áreas monitoradas) */}
         {zonas.map((z) => {
@@ -101,9 +86,11 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
               y={z.rect.y}
               width={z.rect.w}
               height={z.rect.h}
-              fill={cor(z.id)}
-              stroke={z.id === selecionada ? 'var(--viz-selecao)' : destaque.includes(z.id) ? '#d03b3b' : 'var(--viz-fundo)'}
-              strokeWidth={z.id === selecionada || destaque.includes(z.id) ? 4 : 2}
+              rx="3"
+              fill={valores ? cor(z.id) : 'rgba(37, 99, 235, 0.08)'}
+              fillOpacity={valores ? 0.78 : 1}
+              stroke={z.id === selecionada ? 'var(--viz-selecao)' : destaque.includes(z.id) ? '#d03b3b' : 'rgba(37, 99, 235, 0.35)'}
+              strokeWidth={z.id === selecionada || destaque.includes(z.id) ? 3 : 1}
               className={linkZona || aoClicarZona ? 'cursor-pointer' : undefined}
               onClick={aoClicarZona ? () => aoClicarZona(z.id) : undefined}
               onMouseMove={(e) => {
@@ -124,15 +111,14 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
 
         {ESCADAS.filter((e) => e.andar === andar).map((e, i) => (
           <g key={i} pointerEvents="none">
-            <rect x={e.rect.x} y={e.rect.y} width={e.rect.w} height={e.rect.h} rx="3" fill="none" stroke="var(--viz-texto-sec)" strokeDasharray="4 3" />
-            <text x={e.rect.x + e.rect.w / 2} y={e.rect.y + e.rect.h / 2 + 4} textAnchor="middle" className="fill-[var(--viz-texto-sec)] text-[9px]">
-              escadas
+            <rect x={e.rect.x} y={e.rect.y} width={e.rect.w} height={e.rect.h} rx="3" fill="rgba(255,255,255,0.75)" stroke="#334155" strokeDasharray="4 3" />
+            <text x={e.rect.x + e.rect.w / 2} y={e.rect.y + e.rect.h / 2 + 4} textAnchor="middle" className="fill-slate-700 text-[8px] font-semibold">
+              escada
             </text>
           </g>
         ))}
 
-        {andar === 'T' &&
-          ENTRADAS.map((e) => (
+        {ENTRADAS.filter((e) => e.andar === andar).map((e) => (
             <g key={e.id}>
               <rect x={e.rect.x} y={e.rect.y} width={e.rect.w} height={e.rect.h} rx="3" fill="var(--viz-entrada)" />
               <text
@@ -142,10 +128,10 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
                 className="fill-white text-[10px] font-semibold"
                 transform={e.rect.h > e.rect.w ? `rotate(-90 ${e.rect.x + e.rect.w / 2} ${e.rect.y + e.rect.h / 2})` : undefined}
               >
-                {e.nome.replace('Entrada ', '')}
+                {e.nome.replace('Entrada ', '').replace(/ \(.*\)/, '')}
               </text>
             </g>
-          ))}
+        ))}
 
 
         <defs>

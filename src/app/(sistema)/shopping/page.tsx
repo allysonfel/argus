@@ -55,7 +55,7 @@ export default function VisaoGeralPage() {
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Pessoas no shopping agora" value={formatarNumero(ocupacao)} hint="Ocupação estimada" tone="primary" />
         <div>
-          <StatCard label="Entradas hoje" value={formatarNumero(entradasHoje)} hint="Contagem por linha nas 4 entradas" />
+          <StatCard label="Entradas hoje" value={formatarNumero(entradasHoje)} hint="Contagem por linha nas entradas" />
           <div className="-mt-1 px-1 pt-2">
             <Variacao atual={entradasHoje} anterior={entradasMesmaHoraAnterior} sufixo={`vs. ${DIAS_SEMANA[diaSemana(semanaPassada)].toLowerCase()} passado, mesma hora`} />
           </div>

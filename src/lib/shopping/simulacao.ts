@@ -8,7 +8,7 @@
 // (cada câmera projeta os pés das pessoas na planta por homografia).
 
 import { PERFIL_HORA, agoraDemo, entradasDia, somarDias } from './demo';
-import { CINEMA, ENTRADAS, LOJAS, ZONAS, type Andar, type Retangulo } from './planta';
+import { CINEMA, ENTRADAS, LIGACOES_ESCADAS, LOJAS, ZONAS, ZONA_ALIMENTACAO, ZONA_CINEMA, type Andar, type Retangulo } from './planta';
 
 export const MIN_DIA = 12 * 60; // 10h às 22h
 export const N_AGENTES = 3600;
@@ -81,8 +81,8 @@ const PROXIMO: Int16Array = (() => {
       if (NOS[i].andar === NOS[j].andar && encostam(NOS[i].rect, NOS[j].rect))
         ligar(i, j, Math.hypot(cx(NOS[i].rect) - cx(NOS[j].rect), cy(NOS[i].rect) - cy(NOS[j].rect)));
   }
-  // Escada rolante: praça do Térreo <-> mezanino do Piso 1.
-  ligar(IDX.get('T-C4')!, IDX.get('P1-C4')!, 160);
+  // Escadas rolantes entre o Térreo e o Piso 1.
+  for (const [a, b] of LIGACOES_ESCADAS) ligar(IDX.get(a)!, IDX.get(b)!, 160);
   for (let k = 0; k < n; k++)
     for (let i = 0; i < n; i++)
       for (let j = 0; j < n; j++) {
@@ -171,7 +171,7 @@ export function simular(acoes: Acao[] = [], semente = 20261012, dia?: string): S
     let t = chegada;
     let no = IDX.get(entrada.id)!;
     let [x, y] = pontoEm(entrada.rect, 0.35);
-    let andar: Andar = 'T';
+    let andar: Andar = entrada.andar;
 
     const mover = (px: number, py: number, novoAndar: Andar, vel = VEL_PX_MIN * (0.8 + 0.4 * rnd())) => {
       const d = novoAndar === andar ? Math.hypot(px - x, py - y) : 160;
@@ -220,11 +220,11 @@ export function simular(acoes: Acao[] = [], semente = 20261012, dia?: string): S
       const jantar = h >= 18.5 && h < 21;
       const r = rnd();
       if (r < (almoco ? 0.45 : jantar ? 0.4 : 0.08)) {
-        irAte(IDX.get('P1-ALIM')!);
-        ficar(15 + 25 * rnd(), true, ZONAS.find((z) => z.id === 'P1-ALIM')!.rect);
+        irAte(IDX.get(ZONA_ALIMENTACAO)!);
+        ficar(15 + 25 * rnd(), true, ZONAS.find((z) => z.id === ZONA_ALIMENTACAO)!.rect);
       } else if (h >= 13.5 && h < 20 && r > 0.95) {
-        irAte(IDX.get('P1-S1')!);
-        mover(cx(CINEMA), CINEMA.y + 8, andar);
+        irAte(IDX.get(ZONA_CINEMA)!);
+        mover(CINEMA.x + 4, cy(CINEMA), andar);
         ficar(110 + 20 * rnd(), false);
         v = visitas; // depois do filme, vai embora
       } else {
@@ -308,7 +308,7 @@ export function indiceZonas(sim: Simulacao): Record<string, number> {
   const res: Record<string, number> = {};
   for (const andar of ['T', 'P1'] as Andar[]) {
     // Praça de alimentação fica fora (uso diferente: as pessoas ficam sentadas).
-    const zs = ZONAS.filter((z) => z.andar === andar && z.id !== 'P1-ALIM');
+    const zs = ZONAS.filter((z) => z.andar === andar && z.id !== ZONA_ALIMENTACAO);
     const dens = zs.map((z) => sim.ocupacaoZona[z.id] / (z.rect.w * z.rect.h));
     const media = dens.reduce((s, d) => s + d, 0) / dens.length;
     zs.forEach((z, i) => (res[z.id] = media ? dens[i] / media : 0));

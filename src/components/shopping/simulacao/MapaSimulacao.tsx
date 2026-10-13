@@ -162,7 +162,7 @@ const GH = 70; // grade do calor: células de 8 px na planta (1000 x 560)
 // Onde dá pra andar (corredores, praças e entradas): o calor só aparece aí.
 function mascara(andar: Andar): Uint8Array {
   const m = new Uint8Array(GW * GH);
-  const rects = [...ZONAS.filter((z) => z.andar === andar).map((z) => z.rect), ...(andar === 'T' ? ENTRADAS.map((e) => e.rect) : [])];
+  const rects = [...ZONAS.filter((z) => z.andar === andar).map((z) => z.rect), ...ENTRADAS.filter((e) => e.andar === andar).map((e) => e.rect)];
   for (let j = 0; j < GH; j++)
     for (let i = 0; i < GW; i++) {
       const x = (i + 0.5) * 8;

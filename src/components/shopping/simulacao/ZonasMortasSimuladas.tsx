@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { SelectField } from '@/components/ui/Field';
 import { formatarNumero } from '@/lib/shopping/demo';
-import { ZONAS, zonaPorId, type Andar } from '@/lib/shopping/planta';
+import { ZONAS, ZONA_ALIMENTACAO, zonaPorId, type Andar } from '@/lib/shopping/planta';
 import { indiceZonas, sementeDoDia, simular, type Acao, type Simulacao } from '@/lib/shopping/simulacao';
 import { ControlesRelogio, MapaSimulacao, SeletorAndar, useRelogio } from './MapaSimulacao';
 
@@ -47,7 +47,7 @@ export function ZonasMortasSimuladas() {
   const mostrando = ver === 'depois' && depois && indDepois ? { sim: depois, ind: indDepois } : { sim: base, ind: indBase };
   const doAndar = ZONAS.filter((z) => z.andar === andar && z.id in mostrando.ind).sort((a, b) => mostrando.ind[a.id] - mostrando.ind[b.id]);
   const mortasVistas = doAndar.filter((z) => mostrando.ind[z.id] < limite / 100);
-  const valores: Record<string, number> = { 'P1-ALIM': 1, ...mostrando.ind };
+  const valores: Record<string, number> = { [ZONA_ALIMENTACAO]: 1, ...mostrando.ind };
 
   function simularAcao() {
     const t = TIPOS.find((x) => x.id === tipo)!;
@@ -99,7 +99,7 @@ export function ZonasMortasSimuladas() {
             sim={mostrando.sim}
             andar={andar}
             relogio={relogio}
-            planta={{ valores, modo: 'divergente', formatarValor: 'indice', destaque: mortasVistas.map((z) => z.id), selecionada: zonaSel, aoClicarZona: (id) => id !== 'P1-ALIM' && setZonaSel(id) }}
+            planta={{ valores, modo: 'divergente', formatarValor: 'indice', destaque: mortasVistas.map((z) => z.id), selecionada: zonaSel, aoClicarZona: (id) => id !== ZONA_ALIMENTACAO && setZonaSel(id) }}
           />
           <div className="mt-3">
             <LegendaDivergente />

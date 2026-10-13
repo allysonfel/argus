@@ -91,11 +91,10 @@ function Navegacao({ aoNavegar }: { aoNavegar?: () => void }) {
 function Cabecalho() {
   return (
     <div className="px-6 pb-4 pt-6">
-      <LogoArgus className="h-3 text-on-surface" />
-      <p className="mt-0.5 text-[8.5px] font-semibold uppercase tracking-[0.16em] text-on-surface-variant">Inteligência Patrimonial</p>
-      {/* Logo do cliente: direto no fundo claro; no tema escuro ganha um fundo branco (o texto dele é escuro). */}
-      <div className="logo-cliente mt-5 flex justify-center rounded-md py-1">
-        <img src="/caruaru-shopping.png" alt="Caruaru Shopping" className="h-[72px] w-auto" />
+      {/* Slogan logo embaixo, nunca mais largo que o logotipo */}
+      <div className="inline-flex flex-col items-start">
+        <LogoArgus className="h-7 text-on-surface" />
+        <span className="mt-1 whitespace-nowrap text-[7.5px] font-semibold uppercase tracking-[0.11em] text-on-surface-variant">Inteligência Patrimonial</span>
       </div>
     </div>
   );
@@ -105,7 +104,15 @@ function Rodape({ nomeUsuario }: { nomeUsuario: string }) {
   return (
     <div className="border-t border-outline-variant p-4">
       <ThemeToggle />
-      <p className="mb-2 truncate text-sm font-medium text-on-surface">{nomeUsuario}</p>
+      <div className="mb-2 flex items-center gap-2.5">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-outline-variant bg-surface-container-low">
+          <img src="/caruaru-simbolo.png" alt="" className="h-7 w-7" />
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium leading-tight text-on-surface">{nomeUsuario}</p>
+          <p className="truncate text-xs leading-tight text-on-surface-variant">Caruaru Shopping</p>
+        </div>
+      </div>
       <form action={fazerLogout}>
         <button type="submit" className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-sm font-medium text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface">
           <IconeSair />
@@ -133,10 +140,8 @@ export function MenuMovelShopping({ nomeUsuario }: { nomeUsuario: string }) {
     <div className="lg:hidden print:hidden">
       <div className="sticky top-0 z-40 flex items-center justify-between border-b border-outline-variant bg-surface/80 px-4 py-3 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <LogoArgus className="h-3.5 text-on-surface" />
-          <span className="rounded-sm bg-white p-0.5">
-            <img src="/caruaru-shopping.png" alt="Caruaru Shopping" className="h-7 w-auto" />
-          </span>
+          <LogoArgus className="h-5 text-on-surface" />
+          <img src="/caruaru-simbolo.png" alt="Caruaru Shopping" className="h-7 w-7" />
         </div>
         <button onClick={() => setAberto(true)} className="rounded-sm border border-outline-variant px-3 py-1.5 text-sm text-on-surface" aria-label="Abrir menu">
           Menu

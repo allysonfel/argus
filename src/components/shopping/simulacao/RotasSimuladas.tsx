@@ -14,7 +14,8 @@ const nome = (id: string) => areaPorId(id)?.nome ?? ENTRADAS.find((e) => e.id ==
 
 function andarDaArea(id: string, outro?: string): Andar | undefined {
   if (id === 'escadas') return outro ? andarDaArea(outro) : undefined; // liga os dois pisos
-  if (ENTRADAS.some((e) => e.id === id)) return 'T';
+  const ent = ENTRADAS.find((e) => e.id === id);
+  if (ent) return ent.andar;
   return areaPorId(id)?.andar;
 }
 
@@ -68,7 +69,7 @@ export function RotasSimuladas() {
 
   const setas: Seta[] = transicoes
     .filter((f) => f.de !== f.para && andarDaArea(f.de, f.para) === andar && andarDaArea(f.para, f.de) === andar)
-    .map((f) => ({ de: centroArea(f.de === 'escadas' ? `${andar}-praca` : f.de), para: centroArea(f.para === 'escadas' ? `${andar}-praca` : f.para), valor: f.valor, rotulo: `${nome(f.de)} → ${nome(f.para)}` }))
+    .map((f) => ({ de: centroArea(f.de, andar), para: centroArea(f.para, andar), valor: f.valor, rotulo: `${nome(f.de)} → ${nome(f.para)}` }))
     .filter((s) => Math.hypot(s.de[0] - s.para[0], s.de[1] - s.para[1]) > 30);
   const sel = rotas.find((r) => r.k === rotaSel);
   const destaque = useMemo(() => (sel ? new Set(sel.ids) : null), [sel]);

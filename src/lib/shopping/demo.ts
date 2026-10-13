@@ -6,7 +6,7 @@
 // mostra o selo "Dados de demonstração". Quando o banco agregado do motor
 // estiver pronto (etapa 4), estas funções são trocadas por consultas.
 
-import { AREAS, ENTRADAS, ZONAS, centro, centroArea, type Andar, type Zona } from './planta';
+import { AREAS, AREA_ALIMENTACAO, ENTRADAS, LIGACOES_AREAS, ZONAS, centro, centroArea, type Andar, type Zona } from './planta';
 import { datasComerciais, janela } from './datasComerciais';
 
 export const HORA_ABRE = 10;
@@ -113,8 +113,8 @@ function ruido(chave: string): number {
 // é SIMULADO aqui pra a comparação antes/depois ter o que mostrar.
 export type AcaoZona = { id: string; zonaId: string; data: string; descricao: string; autor: string; efeitoSimulado: number };
 export const ACOES_DEMO: AcaoZona[] = [
-  { id: 'a1', zonaId: 'P1-C7-n', data: '2026-08-14', descricao: 'Quiosque de açaí instalado', autor: 'Marketing', efeitoSimulado: 1.45 },
-  { id: 'a2', zonaId: 'P1-C8-s', data: '2026-09-05', descricao: 'Sinalização nova apontando para a Ala Leste', autor: 'Operações', efeitoSimulado: 1.08 },
+  { id: 'a1', zonaId: 'T-O1', data: '2026-08-14', descricao: 'Quiosque de açaí instalado', autor: 'Marketing', efeitoSimulado: 1.45 },
+  { id: 'a2', zonaId: 'P1-L3', data: '2026-09-05', descricao: 'Sinalização nova apontando para a Praça Redonda', autor: 'Operações', efeitoSimulado: 1.08 },
 ];
 
 /** Pessoas que passaram por uma zona numa hora. */
@@ -124,7 +124,7 @@ export function fluxoZonaHora(z: Zona, iso: string, hora: number): number {
   const acao = ACOES_DEMO.find((a) => a.zonaId === z.id && iso >= a.data);
   const efeito = acao ? acao.efeitoSimulado : 1;
   // Praça de alimentação tem pico de almoço/jantar mais forte
-  const ajuste = z.areaId === 'P1-alim' ? (hora === 12 || hora === 13 || hora === 19 ? 1.35 : hora < 12 ? 0.6 : 1) : 1;
+  const ajuste = z.areaId === AREA_ALIMENTACAO ? (hora === 12 || hora === 13 || hora === 19 ? 1.35 : hora < 12 ? 0.6 : 1) : 1;
   return Math.round(ZONA_BASE_HORA * z.peso * p * ajuste * efeito * fatorDia(iso, 'z') * ruido(`${z.id}|${iso}|${hora}`));
 }
 
@@ -280,7 +280,7 @@ export function zonasMortas(fim: string, semanasMin = 2, limite = 0.4, semanasAn
     const iniS = somarDias(fimS, -6);
     const dias = diasEntre(iniS, fimS);
     for (const a of andares) {
-      const zs = ZONAS.filter((z) => z.andar === a && z.areaId !== 'P1-alim');
+      const zs = ZONAS.filter((z) => z.andar === a && z.areaId !== AREA_ALIMENTACAO);
       const dens = zs.map((z) => dias.reduce((t, d) => t + fluxoZonaDia(z, d), 0) / ((z.rect.w * z.rect.h) / 1000));
       const media = dens.reduce((x, y) => x + y, 0) / dens.length;
       zs.forEach((z, i) => (indices[z.id] ??= []).push(dens[i] / media));
@@ -298,7 +298,7 @@ export function zonasMortas(fim: string, semanasMin = 2, limite = 0.4, semanasAn
     const horasMaisVazias = [...porHora].sort((a, b) => a.media - b.media).slice(0, 3).map((h) => h.hora);
     const iniUlt = somarDias(fim, -13);
     const media = diasEntre(iniUlt, fim).reduce((t, d) => t + fluxoZonaDia(z, d), 0) / 14;
-    const mesmosAndar = ZONAS.filter((o) => o.andar === z.andar && o.areaId !== 'P1-alim');
+    const mesmosAndar = ZONAS.filter((o) => o.andar === z.andar && o.areaId !== AREA_ALIMENTACAO);
     const mediaAndar = mesmosAndar.reduce((t, o) => t + diasEntre(iniUlt, fim).reduce((u, d) => u + fluxoZonaDia(o, d), 0) / 14, 0) / mesmosAndar.length;
     res.push({ zona: z, indice: idx[0], media, mediaAndar, horasMaisVazias, semanasAbaixo, morta: semanasAbaixo >= semanasMin });
   }
@@ -307,22 +307,7 @@ export function zonasMortas(fim: string, semanasMin = 2, limite = 0.4, semanasAn
 
 // ---------- rotas e fluxo (modelo de transições entre áreas) ----------
 
-export const LIGACOES: [string, string][] = [
-  ['ent-principal', 'T-oeste'],
-  ['ent-estac', 'T-leste'],
-  ['ent-norte', 'T-norte'],
-  ['ent-sul', 'T-sul'],
-  ['T-oeste', 'T-praca'],
-  ['T-leste', 'T-praca'],
-  ['T-norte', 'T-praca'],
-  ['T-sul', 'T-praca'],
-  ['T-praca', 'escadas'],
-  ['escadas', 'P1-praca'],
-  ['P1-praca', 'P1-oeste'],
-  ['P1-praca', 'P1-leste'],
-  ['P1-praca', 'P1-alim'],
-  ['P1-praca', 'P1-sul'],
-];
+export const LIGACOES: [string, string][] = LIGACOES_AREAS;
 
 function pesoArea(id: string): number {
   if (id === 'escadas') return 2.2;
@@ -429,7 +414,7 @@ export function antesDepois(acao: AcaoZona, semanas = 4): { antes: number; depoi
   const fimAntes = somarDias(acao.data, -1);
   const media = (ini: string, fim: string) => diasEntre(ini, fim).reduce((t, d) => t + fluxoZonaDia(z, d), 0) / Math.max(1, diasEntre(ini, fim).length);
   const mediaAndar = (ini: string, fim: string) => {
-    const zs = ZONAS.filter((o) => o.andar === z.andar && o.areaId !== 'P1-alim');
+    const zs = ZONAS.filter((o) => o.andar === z.andar && o.areaId !== AREA_ALIMENTACAO);
     return zs.reduce((t, o) => t + diasEntre(ini, fim).reduce((u, d) => u + fluxoZonaDia(o, d), 0), 0) / zs.length / Math.max(1, diasEntre(ini, fim).length);
   };
   const antes = media(iniAntes, fimAntes);
