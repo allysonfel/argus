@@ -6,18 +6,12 @@ import { GraficoSankey } from '@/components/shopping/Graficos';
 import type { Seta } from '@/components/shopping/Planta';
 import { SelectField } from '@/components/ui/Field';
 import { formatarNumero } from '@/lib/shopping/demo';
-import { ENTRADAS, areaPorId, centroArea, type Andar } from '@/lib/shopping/planta';
+import { ENTRADAS, areaPorId, centro, zonaPorId, type Andar } from '@/lib/shopping/planta';
 import { sementeDoDia, simular } from '@/lib/shopping/simulacao';
 import { ControlesRelogio, MapaSimulacao, SeletorAndar, useRelogio } from './MapaSimulacao';
 
 const nome = (id: string) => areaPorId(id)?.nome ?? ENTRADAS.find((e) => e.id === id)?.nome ?? (id === 'escadas' ? 'Escadas rolantes' : id);
 
-function andarDaArea(id: string, outro?: string): Andar | undefined {
-  if (id === 'escadas') return outro ? andarDaArea(outro) : undefined; // liga os dois pisos
-  const ent = ENTRADAS.find((e) => e.id === id);
-  if (ent) return ent.andar;
-  return areaPorId(id)?.andar;
-}
 
 /** Rota = entrada + as 3 primeiras áreas depois dela. */
 const chaveRota = (areas: string[]) => areas.slice(0, 4).join('>');
@@ -67,10 +61,20 @@ export function RotasSimuladas() {
     };
   }, [agentes, sim.escala]);
 
-  const setas: Seta[] = transicoes
-    .filter((f) => f.de !== f.para && andarDaArea(f.de, f.para) === andar && andarDaArea(f.para, f.de) === andar)
-    .map((f) => ({ de: centroArea(f.de, andar), para: centroArea(f.para, andar), valor: f.valor, rotulo: `${nome(f.de)} → ${nome(f.para)}` }))
-    .filter((s) => Math.hypot(s.de[0] - s.para[0], s.de[1] - s.para[1]) > 30);
+  // Setas só nas portas do shopping: quem entra (pra dentro) e quem sai (pra fora).
+  const setas: Seta[] = ENTRADAS.filter((e) => e.andar === andar).flatMap((e) => {
+    const [ex, ey] = centro(e.rect);
+    const [zx, zy] = centro(zonaPorId(e.zonaId)!.rect);
+    const len = Math.hypot(zx - ex, zy - ey) || 1;
+    const fora: [number, number] = [ex - ((zx - ex) / len) * 70, ey - ((zy - ey) / len) * 70];
+    const dentro: [number, number] = [ex + ((zx - ex) / len) * 25, ey + ((zy - ey) / len) * 25];
+    const entraram = agentes.filter((a) => a.entrada === e.id).length * sim.escala;
+    const sairam = agentes.filter((a) => a.saidaPor === e.id).length * sim.escala;
+    return [
+      { de: fora, para: dentro, valor: entraram, rotulo: `Entraram pela ${e.nome}` },
+      { de: dentro, para: fora, valor: sairam, rotulo: `Saíram pela ${e.nome}` },
+    ];
+  });
   const sel = rotas.find((r) => r.k === rotaSel);
   const destaque = useMemo(() => (sel ? new Set(sel.ids) : null), [sel]);
   const total = agentes.length;
@@ -79,15 +83,15 @@ export function RotasSimuladas() {
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <Secao
-          titulo="Fluxo entre as áreas"
-          descricao="Setas = quantas pessoas passaram de uma área para a vizinha no dia (mais grossa = mais gente). Os pontos são os visitantes andando."
+          titulo="Entradas, saídas e movimento"
+          descricao="Setas nas portas do shopping: quantas pessoas entraram (pra dentro) e saíram (pra fora) no dia, mais grossa = mais gente. Os pontos são os visitantes andando, com o rastro do caminho."
           className="xl:col-span-2"
           acao={<SeletorAndar andar={andar} setAndar={setAndar} />}
         >
           <div className="mb-4">
             <ControlesRelogio relogio={relogio} />
           </div>
-          <MapaSimulacao sim={sim} andar={andar} relogio={relogio} destaque={destaque} trilhas={!!destaque} planta={{ setas: sel ? [] : setas }} />
+          <MapaSimulacao sim={sim} andar={andar} relogio={relogio} destaque={destaque} trilhas={!!destaque} rastro planta={{ setas: sel ? [] : setas }} />
           {sel && (
             <p className="mt-2 text-xs text-on-surface-variant">
               Em azul: quem fez a rota escolhida, com o caminho. <button onClick={() => setRotaSel(null)} className="font-medium text-primary hover:underline">Mostrar todos</button>

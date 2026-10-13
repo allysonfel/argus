@@ -197,22 +197,24 @@ type Props = {
   destaque?: Set<number> | null;
   /** Desenha o caminho completo dos destacados. */
   trilhas?: boolean;
+  /** Rastro curto atrás de cada pessoa. */
+  rastro?: boolean;
   planta?: Omit<ComponentProps<typeof Planta>, 'andar'>;
 };
 
-export function MapaSimulacao({ sim, andar, relogio, calor = null, destaque = null, trilhas = false, planta }: Props) {
+export function MapaSimulacao({ sim, andar, relogio, calor = null, destaque = null, trilhas = false, rastro = false, planta }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const masc = useMemo(() => mascara(andar), [andar]);
   const estado = useRef<{ grade: Float32Array; ate: number; idx: number; chave: string } | null>(null);
   const offscreen = useRef<HTMLCanvasElement | null>(null);
-  const props = useRef({ sim, andar, calor, destaque, trilhas });
-  props.current = { sim, andar, calor, destaque, trilhas };
+  const props = useRef({ sim, andar, calor, destaque, trilhas, rastro });
+  props.current = { sim, andar, calor, destaque, trilhas, rastro };
 
   useEffect(() => {
     let raf = 0;
     const desenhar = () => {
       const c = canvas.current;
-      const { sim, andar, calor, destaque, trilhas } = props.current;
+      const { sim, andar, calor, destaque, trilhas, rastro } = props.current;
       if (c) {
         const w = c.clientWidth;
         const h = c.clientHeight;
@@ -256,6 +258,22 @@ export function MapaSimulacao({ sim, andar, relogio, calor = null, destaque = nu
           const p = posicao(a, t);
           if (!p || p.andar !== ai) continue;
           const dest = !destaque || destaque.has(a.id);
+          // Rastro: por onde a pessoa passou nos últimos minutos (some aos poucos).
+          if (rastro && dest) {
+            let ant = p;
+            for (let k = 1; k <= 8; k++) {
+              const q = posicao(a, t - k * 0.35);
+              if (!q || q.andar !== ai || Math.hypot(q.x - ant.x, q.y - ant.y) > 60) break;
+              ctx.beginPath();
+              ctx.moveTo(ant.x, ant.y);
+              ctx.lineTo(q.x, q.y);
+              ctx.strokeStyle = `rgba(37, 99, 235, ${0.55 * (1 - k / 9)})`;
+              ctx.lineWidth = 2.6 - k * 0.22;
+              ctx.lineCap = 'round';
+              ctx.stroke();
+              ant = q;
+            }
+          }
           ctx.beginPath();
           ctx.arc(p.x, p.y, dest ? 4.2 : 2.6, 0, Math.PI * 2);
           ctx.fillStyle = dest ? (destaque ? '#2563eb' : '#1e293b') : 'rgba(100, 116, 139, 0.35)';
@@ -304,14 +322,18 @@ export function MapaSimulacao({ sim, andar, relogio, calor = null, destaque = nu
       offscreen.current.width = GW;
       offscreen.current.height = GH;
     }
-    let max = 0;
-    for (let i = 0; i < e.grade.length; i++) if (masc[i]) max = Math.max(max, e.grade[i]);
+    // Escala pelo percentil 92 (não pelo máximo): a praça de alimentação,
+    // onde as pessoas ficam sentadas, não apaga o resto do shopping.
+    const vals: number[] = [];
+    for (let i = 0; i < e.grade.length; i++) if (masc[i] && e.grade[i] > 0) vals.push(e.grade[i]);
+    vals.sort((a, b) => a - b);
+    const max = vals.length ? vals[Math.floor(vals.length * 0.92)] : 0;
     const ctx = offscreen.current.getContext('2d')!;
     const img = ctx.createImageData(GW, GH);
     for (let i = 0; i < e.grade.length; i++) {
       if (!masc[i] || e.grade[i] <= 0 || !max) continue;
       // raiz: realça as áreas medianas (sem ela, só a praça aparece)
-      img.data.set(corCalor(Math.sqrt(e.grade[i] / max)), i * 4);
+      img.data.set(corCalor(Math.min(1, Math.sqrt(e.grade[i] / max))), i * 4);
     }
     ctx.putImageData(img, 0, 0);
   }

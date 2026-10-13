@@ -119,7 +119,7 @@ function destinos(acoes: Acao[]): Destino[] {
     // Porta: ponto da borda do corredor mais perto do centro da loja.
     const px = Math.min(z.rect.x + z.rect.w - 4, Math.max(z.rect.x + 4, cx(l.rect)));
     const py = Math.min(z.rect.y + z.rect.h - 4, Math.max(z.rect.y + 4, cy(l.rect)));
-    lista.push({ tipo: 'loja', zona: z.id, peso: Math.pow(z.peso, 2) * (mult.get(z.id) ?? 1), porta: [px, py] });
+    lista.push({ tipo: 'loja', zona: z.id, peso: z.peso * l.atracao * (mult.get(z.id) ?? 1), porta: [px, py] });
   }
   // Ação comercial (quiosque, evento): as pessoas param na própria área.
   for (const a of acoes) {
@@ -219,7 +219,7 @@ export function simular(acoes: Acao[] = [], semente = 20261012, dia?: string): S
       const almoco = h >= 11.5 && h < 14.5;
       const jantar = h >= 18.5 && h < 21;
       const r = rnd();
-      if (r < (almoco ? 0.45 : jantar ? 0.4 : 0.08)) {
+      if (r < (almoco ? 0.3 : jantar ? 0.25 : 0.05)) {
         irAte(IDX.get(ZONA_ALIMENTACAO)!);
         ficar(15 + 25 * rnd(), true, ZONAS.find((z) => z.id === ZONA_ALIMENTACAO)!.rect);
       } else if (h >= 13.5 && h < 20 && r > 0.95) {

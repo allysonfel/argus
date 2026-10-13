@@ -14,7 +14,8 @@ export type Retangulo = { x: number; y: number; w: number; h: number };
 
 export type Area = { id: string; nome: string; andar: Andar; tipo: 'entrada' | 'corredor' | 'praca' | 'alimentacao' | 'escada' | 'estacionamento' };
 export type Zona = { id: string; nome: string; andar: Andar; areaId: string; corredor: string; rect: Retangulo; peso: number; permanenciaBaseS: number };
-export type Loja = { id: string; nome: string; categoria: string; andar: Andar; rect: Retangulo; frenteZonaId: string; portaVisivel: boolean; plano: 'Básico' | 'Completo' | null };
+// atracao: quanto a loja puxa visitantes (âncoras puxam mais).
+export type Loja = { id: string; nome: string; categoria: string; andar: Andar; rect: Retangulo; frenteZonaId: string; portaVisivel: boolean; plano: 'Básico' | 'Completo' | null; atracao: number };
 export type Entrada = { id: string; nome: string; andar: Andar; rect: Retangulo; peso: number; zonaId: string };
 export type Camera = { id: string; nome: string; andar: Andar; x: number; y: number; zonas: string[] };
 
@@ -150,7 +151,7 @@ const DEF_LOJAS: [string, string, Andar, Retangulo, string][] = [
   ['Kalunga · Studio Z', 'Papelaria · Moda', 'T', T(270, 330, 170, 120), 'T-O1'],
   ['Smart Fit', 'Academia', 'T', T(360, 515, 90, 75), 'T-O1'],
   ['C&A', 'Moda', 'T', T(540, 280, 180, 140), 'T-C1'],
-  ['Lojas Americanas', 'Variedades', 'T', T(690, 290, 250, 50), 'T-ALIM'],
+  ['Lojas Americanas', 'Variedades', 'T', T(690, 290, 250, 50), 'T-N1'],
   ['Caixa', 'Banco', 'T', T(950, 290, 90, 120), 'T-N1'],
   ['Renner', 'Moda', 'T', T(1050, 300, 230, 110), 'T-N2'],
   ['Atacadão dos Eletros · Império · Game Station · Nagem', 'Eletro e games', 'T', T(880, 460, 280, 110), 'T-N1'],
@@ -173,6 +174,7 @@ const DEF_LOJAS: [string, string, Andar, Retangulo, string][] = [
   ['Centro de Convenções', 'Eventos', 'P1', P(750, 100, 300, 180), 'P1-C2'],
   ['Epic Tower', 'Escritórios', 'P1', P(620, 520, 170, 120), 'P1-A1'],
 ];
+const ANCORAS = ['BIG Bompreço', 'C&A', 'Lojas Americanas', 'Renner', 'Marisa', 'Riachuelo', 'Atacadão dos Eletros · Império · Game Station · Nagem', 'Casas Bahia', 'Faculdade Anhanguera', 'Centro de Convenções', 'Smart Fit'];
 export const LOJAS: Loja[] = DEF_LOJAS.map(([nome, categoria, andar, rect, frenteZonaId], i) => ({
   id: `L${andar}${String(i + 1).padStart(2, '0')}`,
   nome,
@@ -182,6 +184,7 @@ export const LOJAS: Loja[] = DEF_LOJAS.map(([nome, categoria, andar, rect, frent
   frenteZonaId,
   portaVisivel: true,
   plano: null,
+  atracao: ANCORAS.includes(nome) ? 3 : 1,
 }));
 
 // Ligações entre áreas (modelo de transições dos dados de demonstração).
