@@ -24,7 +24,7 @@ export function PergunteArgus({ limiteDia, usadasHoje }: { limiteDia: number; us
   useEffect(() => {
     if (aberto) setVisivel(true);
     else {
-      const t = setTimeout(() => setVisivel(false), 220);
+      const t = setTimeout(() => setVisivel(false), 300);
       return () => clearTimeout(t);
     }
   }, [aberto]);
@@ -65,10 +65,10 @@ export function PergunteArgus({ limiteDia, usadasHoje }: { limiteDia: number; us
       {visivel && (
         <div
           className={cn(
-            'fixed bottom-24 right-5 z-50 flex h-[min(640px,calc(100vh-8rem))] w-[min(420px,calc(100vw-2.5rem))] origin-bottom-right flex-col overflow-hidden rounded-md border border-outline-variant bg-surface shadow-2xl transition-all duration-200 ease-out',
-            aberto ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-3 scale-95 opacity-0'
+            'fixed bottom-24 right-5 z-50 flex h-[min(640px,calc(100vh-8rem))] w-[min(420px,calc(100vw-2.5rem))] origin-bottom-right flex-col overflow-hidden rounded-md border border-outline-variant bg-surface shadow-2xl',
+            !aberto && 'pointer-events-none'
           )}
-          style={{ animation: aberto ? 'argus-abrir 220ms ease-out' : undefined }}
+          style={{ animation: aberto ? 'argus-abrir 220ms ease-out' : 'argus-fechar 300ms cubic-bezier(.5, 0, .75, 0) forwards' }}
         >
           <div className="flex items-center justify-between border-b border-outline-variant px-4 py-3">
             <div className="flex items-center gap-2.5">
