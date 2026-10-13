@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { CAMERAS, ENTRADAS, ESCADAS, FUNDO, LOJAS, ZONAS, type Andar } from '@/lib/shopping/planta';
+import { CAMERAS, CONTORNO, ENTRADAS, ESCADAS, FUNDO, LOJAS, ZONAS, type Andar } from '@/lib/shopping/planta';
 
 // Escala sequencial de um matiz só (azul, claro -> escuro), da paleta de
 // referência do guia de visualização. Claro = pouco movimento.
@@ -43,6 +43,8 @@ type Props = {
   mostrarCameras?: boolean;
   lojaDestacada?: string;
   aoClicarZona?: (id: string) => void;
+  /** 'oficial' = imagem da planta do shopping; 'esboco' = desenho limpo no estilo do sistema. */
+  estilo?: 'oficial' | 'esboco';
 };
 
 function textoValor(v: number, f: Props['formatarValor']): string {
@@ -51,7 +53,7 @@ function textoValor(v: number, f: Props['formatarValor']): string {
   return `${v.toFixed(1)} passagens/dia por 1.000 px²`;
 }
 
-export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'densidade', destaque = [], selecionada, linkZona, setas = [], marcadores = [], mostrarCameras, lojaDestacada, aoClicarZona }: Props) {
+export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'densidade', destaque = [], selecionada, linkZona, setas = [], marcadores = [], mostrarCameras, lojaDestacada, aoClicarZona, estilo = 'oficial' }: Props) {
   const [hover, setHover] = useState<{ x: number; y: number; texto: string[] } | null>(null);
   const zonas = ZONAS.filter((z) => z.andar === andar);
   const vals = zonas.map((z) => valores?.[z.id] ?? 0);
@@ -70,8 +72,28 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
       <svg viewBox="0 0 1000 560" className="block h-auto w-full select-none" role="img" aria-label={`Planta do ${andar === 'T' ? 'Térreo' : 'Piso 1'}`}>
         <rect x="0" y="0" width="1000" height="560" fill="var(--viz-fundo)" rx="6" />
 
-        {/* Planta oficial do shopping de fundo (as lojas já vêm com nome nela) */}
-        <image href={FUNDO[andar].src} x={FUNDO[andar].x} y={FUNDO[andar].y} width={FUNDO[andar].w} height={FUNDO[andar].h} preserveAspectRatio="none" />
+        {estilo === 'oficial' ? (
+          /* Planta oficial do shopping de fundo (as lojas já vêm com nome nela) */
+          <image href={FUNDO[andar].src} x={FUNDO[andar].x} y={FUNDO[andar].y} width={FUNDO[andar].w} height={FUNDO[andar].h} preserveAspectRatio="none" />
+        ) : (
+          /* Esboço: prédio, lojas e âncoras redesenhados a partir da planta oficial */
+          <g>
+            <polygon points={CONTORNO[andar].map((p) => p.join(',')).join(' ')} fill="var(--viz-loja)" stroke="var(--viz-linha)" strokeWidth="2" strokeLinejoin="round" />
+            {LOJAS.filter((l) => l.andar === andar).map((l) => {
+              const tam = Math.max(7, Math.min(12, l.rect.w / Math.max(6, l.nome.length * 0.62)));
+              return (
+                <g key={l.id}>
+                  <rect x={l.rect.x} y={l.rect.y} width={l.rect.w} height={l.rect.h} rx="3" fill={l.atracao > 1 ? 'var(--viz-neutro)' : 'var(--viz-fundo)'} stroke="var(--viz-linha)" strokeWidth="1" />
+                  {l.rect.w > 28 && l.rect.h > 14 && (
+                    <text x={l.rect.x + l.rect.w / 2} y={l.rect.y + l.rect.h / 2 + tam / 3} textAnchor="middle" className="fill-[var(--viz-texto)] font-semibold" style={{ fontSize: tam }}>
+                      {l.nome.length > 28 ? l.nome.split(' · ')[0] : l.nome}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
+          </g>
+        )}
         {lojaDestacada &&
           LOJAS.filter((l) => l.id === lojaDestacada && l.andar === andar).map((l) => (
             <rect key={l.id} x={l.rect.x} y={l.rect.y} width={l.rect.w} height={l.rect.h} rx="3" fill="var(--viz-loja-destaque)" fillOpacity="0.35" stroke="var(--viz-selecao)" strokeWidth="2.5" />
@@ -87,9 +109,9 @@ export function Planta({ andar, valores, modo = 'sequencial', formatarValor = 'd
               width={z.rect.w}
               height={z.rect.h}
               rx="3"
-              fill={valores ? cor(z.id) : 'rgba(37, 99, 235, 0.08)'}
-              fillOpacity={valores ? 0.78 : 1}
-              stroke={z.id === selecionada ? 'var(--viz-selecao)' : destaque.includes(z.id) ? '#d03b3b' : 'rgba(37, 99, 235, 0.35)'}
+              fill={valores ? cor(z.id) : estilo === 'esboco' ? 'var(--viz-corredor)' : 'rgba(37, 99, 235, 0.08)'}
+              fillOpacity={valores ? (estilo === 'esboco' ? 1 : 0.78) : 1}
+              stroke={z.id === selecionada ? 'var(--viz-selecao)' : destaque.includes(z.id) ? '#d03b3b' : estilo === 'esboco' ? 'var(--viz-corredor)' : 'rgba(37, 99, 235, 0.35)'}
               strokeWidth={z.id === selecionada || destaque.includes(z.id) ? 3 : 1}
               className={linkZona || aoClicarZona ? 'cursor-pointer' : undefined}
               onClick={aoClicarZona ? () => aoClicarZona(z.id) : undefined}

@@ -205,6 +205,18 @@ type Props = {
 export function MapaSimulacao({ sim, andar, relogio, calor = null, destaque = null, trilhas = false, rastro = false, planta }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const masc = useMemo(() => mascara(andar), [andar]);
+  const [estilo, setEstilo] = useState<'oficial' | 'esboco'>('oficial');
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('argus-estilo-planta') === 'esboco') setEstilo('esboco');
+    } catch {}
+  }, []);
+  const mudarEstilo = (e: 'oficial' | 'esboco') => {
+    setEstilo(e);
+    try {
+      localStorage.setItem('argus-estilo-planta', e);
+    } catch {}
+  };
   const estado = useRef<{ grade: Float32Array; ate: number; idx: number; chave: string } | null>(null);
   const offscreen = useRef<HTMLCanvasElement | null>(null);
   const props = useRef({ sim, andar, calor, destaque, trilhas, rastro });
@@ -340,7 +352,15 @@ export function MapaSimulacao({ sim, andar, relogio, calor = null, destaque = nu
 
   return (
     <div className="relative">
-      <Planta andar={andar} {...planta} />
+      <Planta andar={andar} estilo={estilo} {...planta} />
+      {/* Visão da planta: imagem oficial ou esboço no estilo do sistema */}
+      <div className="absolute left-2 top-2 z-10 flex rounded-md bg-surface/90 p-0.5 text-xs shadow-sm ring-1 ring-outline-variant backdrop-blur">
+        {(['oficial', 'esboco'] as const).map((e) => (
+          <button key={e} onClick={() => mudarEstilo(e)} className={`rounded px-2.5 py-1 font-medium ${estilo === e ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:text-on-surface'}`}>
+            {e === 'oficial' ? 'Planta oficial' : 'Esboço'}
+          </button>
+        ))}
+      </div>
       <canvas ref={canvas} className="pointer-events-none absolute inset-0 h-full w-full" />
     </div>
   );
