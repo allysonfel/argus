@@ -30,7 +30,7 @@ export default async function ShoppingLayout({ children }: { children: React.Rea
   const abertura = (await cookies()).has('argus-abertura');
 
   return (
-    <div className={`tema-shopping ${fonteTitulo.variable} min-h-screen bg-surface-dim ${abertura ? 'entrada-animada' : ''}`}>
+    <div className={`tema-shopping ${fonteTitulo.variable} min-h-screen bg-surface-dim`}>
       <SidebarShopping {...menu} />
       <MenuMovelShopping {...menu} />
       <BotaoSimulacao />

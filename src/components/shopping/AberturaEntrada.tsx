@@ -26,11 +26,6 @@ export function AberturaEntrada({ nome }: { nome: string }) {
     };
   }, []);
 
-  // Ao sair, o painel por trás entra animado (ver .entrada-animada em tema.css).
-  useEffect(() => {
-    if (fase !== 'tocando') document.querySelector('.entrada-animada')?.classList.add('revelar');
-  }, [fase]);
-
   if (fase === 'nada') return null;
   const primeiroNome = nome.split(' ')[0];
 
