@@ -8,6 +8,7 @@ import { partesDoNome } from '@/components/shopping/cameras/tipos';
 import { Badge } from '@/components/ui/Badge';
 import { SelectField } from '@/components/ui/Field';
 import { Calor, amostras, carregarCamerasReais, desenharCalor, indiceZonasReais, type CameraReal } from '@/lib/shopping/real';
+import { MapaCameras } from './MapaCameras';
 import { MosaicoReal, useCamerasReais } from './MosaicoReal';
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
@@ -26,6 +27,7 @@ function corZona(indice: number): string {
 export function ZonasMortasReal({ urlMotor }: { urlMotor: string }) {
   const { cameras, erro } = useCamerasReais(urlMotor, carregarCamerasReais);
   const [limite, setLimite] = useState(40);
+  const [aberta, setAberta] = useState<string | null>(null);
   const inteiros = useRef(new Map<string, Float32Array>());
   const offscreen = useRef<HTMLCanvasElement | null>(null);
   const indices = useMemo(() => (cameras ? indiceZonasReais(cameras) : []), [cameras]);
@@ -70,6 +72,9 @@ export function ZonasMortasReal({ urlMotor }: { urlMotor: string }) {
 
   return (
     <div className="flex flex-col gap-6">
+      <Secao titulo="Mapa das câmeras" descricao="Planta montada só com as 15 câmeras de demonstração, com as zonas de cada uma coloridas pelo movimento real (vermelho = abaixo da média, azul = acima; contorno vermelho = zona morta).">
+        <MapaCameras urlMotor={urlMotor} cameras={cameras} modo="zonas" onAbrir={setAberta} limiteZona={limite / 100} />
+      </Secao>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-4">
         <Secao
           titulo="Zonas de cada câmera"
@@ -80,6 +85,8 @@ export function ZonasMortasReal({ urlMotor }: { urlMotor: string }) {
             urlMotor={urlMotor}
             cameras={cameras.filter((c) => c.zonas.length)}
             desenhar={desenhar}
+            aberta={aberta}
+            onAberta={setAberta}
             legenda={(c) => {
               const zs = indices.filter((z) => z.cam === c);
               const m = zs.filter((z) => z.indice < limite / 100).length;

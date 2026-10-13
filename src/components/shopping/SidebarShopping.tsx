@@ -90,14 +90,12 @@ function Navegacao({ aoNavegar }: { aoNavegar?: () => void }) {
 
 function Cabecalho() {
   return (
-    <div className="px-6 pb-5 pt-6">
-      <LogoArgus className="h-5 text-on-surface" />
-      <div className="mt-4 flex items-center gap-2.5 rounded-sm border border-outline-variant bg-surface-dim px-2.5 py-2">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-primary-container text-[11px] font-bold text-on-primary-container">SC</span>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold leading-tight text-on-surface">Shopping Caruaru</p>
-          <p className="text-xs leading-tight text-on-surface-variant">Caruaru · PE</p>
-        </div>
+    <div className="px-6 pb-4 pt-6">
+      <LogoArgus className="h-3 text-on-surface" />
+      <p className="mt-0.5 text-[8.5px] font-semibold uppercase tracking-[0.16em] text-on-surface-variant">Inteligência Patrimonial</p>
+      {/* Logo do cliente: direto no fundo claro; no tema escuro ganha um fundo branco (o texto dele é escuro). */}
+      <div className="logo-cliente mt-5 flex justify-center rounded-md py-1">
+        <img src="/caruaru-shopping.png" alt="Caruaru Shopping" className="h-[72px] w-auto" />
       </div>
     </div>
   );
@@ -135,8 +133,10 @@ export function MenuMovelShopping({ nomeUsuario }: { nomeUsuario: string }) {
     <div className="lg:hidden print:hidden">
       <div className="sticky top-0 z-40 flex items-center justify-between border-b border-outline-variant bg-surface/80 px-4 py-3 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <LogoArgus className="h-4 text-on-surface" />
-          <span className="text-sm font-semibold text-on-surface">Shopping Caruaru</span>
+          <LogoArgus className="h-3.5 text-on-surface" />
+          <span className="rounded-sm bg-white p-0.5">
+            <img src="/caruaru-shopping.png" alt="Caruaru Shopping" className="h-7 w-auto" />
+          </span>
         </div>
         <button onClick={() => setAberto(true)} className="rounded-sm border border-outline-variant px-3 py-1.5 text-sm text-on-surface" aria-label="Abrir menu">
           Menu

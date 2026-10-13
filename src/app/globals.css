@@ -225,3 +225,8 @@ html.dark {
   --viz-seta: #d95926;
   --viz-selecao: #f0efec;
 }
+
+/* Logo do cliente (texto escuro): fundo branco só no tema escuro. */
+html.dark .logo-cliente {
+  background: #fff;
+}

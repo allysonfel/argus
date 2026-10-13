@@ -3,13 +3,13 @@
 import { useMemo, useState } from 'react';
 import { Secao, Tabela } from '@/components/shopping/Comum';
 import { GraficoSankey } from '@/components/shopping/Graficos';
-import { desenharPessoas } from '@/components/shopping/casos/PlayerCaso';
 import { ErroCaso } from '@/components/shopping/casos/useCaso';
 import { corDoId } from '@/components/shopping/cameras/CameraFoco';
 import { partesDoNome } from '@/components/shopping/cameras/tipos';
 import { SelectField } from '@/components/ui/Field';
-import { pe } from '@/lib/shopping/casos';
+import { caixaEm, pe } from '@/lib/shopping/casos';
 import { NOME_LADO, POR_LADO, PONTO_LADO, carregarCamerasReais, fluxos, passagensLinha, type CameraReal, type Fluxo } from '@/lib/shopping/real';
+import { MapaCameras } from './MapaCameras';
 import { MosaicoReal, useCamerasReais } from './MosaicoReal';
 
 const botao = (ativo: boolean) =>
@@ -60,6 +60,7 @@ export function RotasReal({ urlMotor }: { urlMotor: string }) {
   const [ver, setVer] = useState<'agora' | 'todos'>('agora');
   const [setas, setSetas] = useState(true);
   const [camSankey, setCamSankey] = useState('');
+  const [aberta, setAberta] = useState<string | null>(null);
 
   const porCamera = useMemo(() => new Map((cameras ?? []).map((c) => [c.caso.camera, fluxos(c.caso).filter((f) => f.de !== 'meio' && f.para !== 'meio')])), [cameras]);
 
@@ -106,7 +107,42 @@ export function RotasReal({ urlMotor }: { urlMotor: string }) {
         ctx.stroke();
       }
     } else {
-      desenharPessoas(ctx, cam.caso.pessoas, t, w, h, { rastroS: 8, rotular: () => null });
+      // Todo mundo que está na imagem agora, com o caminho inteiro desde que
+      // entrou (mesmo quem o detector perdeu por um instante).
+      for (const p of cam.caso.pessoas) {
+        if (t < p.entrada || t > p.saida + 0.5) continue;
+        ctx.beginPath();
+        let ultimo: [number, number] | null = null;
+        for (const pt of p.pontos) {
+          if (pt[0] > t) break;
+          const [x, y] = pe(pt);
+          if (!ultimo) ctx.moveTo(x * w, y * h);
+          else ctx.lineTo(x * w, y * h);
+          ultimo = [x, y];
+        }
+        const cx = caixaEm(p, t);
+        if (cx) ctx.lineTo(((cx[0] + cx[2]) / 2) * w, cx[3] * h);
+        ctx.strokeStyle = corDoId(p.id, 0.9);
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+        const ponta = cx ? [(cx[0] + cx[2]) / 2, cx[3]] : ultimo;
+        if (cx) {
+          ctx.strokeStyle = corDoId(p.id);
+          ctx.lineWidth = 2;
+          ctx.strokeRect(cx[0] * w, cx[1] * h, (cx[2] - cx[0]) * w, (cx[3] - cx[1]) * h);
+        }
+        if (ponta) {
+          ctx.beginPath();
+          ctx.arc(ponta[0] * w, ponta[1] * h, 4, 0, Math.PI * 2);
+          ctx.fillStyle = corDoId(p.id);
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+      }
     }
     if (setas) {
       const fs = (porCamera.get(cam.caso.camera) ?? []).filter((f) => f.de !== f.para).slice(0, 3);
@@ -123,11 +159,19 @@ export function RotasReal({ urlMotor }: { urlMotor: string }) {
 
   return (
     <div className="flex flex-col gap-6">
+      <Secao
+        titulo="Mapa das câmeras"
+        descricao="Planta montada só com as 15 câmeras de demonstração. Em cada uma, o caminho de quem passou (forte = está na imagem agora) e as setas dos fluxos principais."
+      >
+        <MapaCameras urlMotor={urlMotor} cameras={cameras} modo="rotas" onAbrir={setAberta} />
+      </Secao>
       <Secao titulo="Caminhos nas câmeras" descricao="O vídeo real de cada câmera com o caminho das pessoas. As setas amarelas são os fluxos mais comuns: por qual lado da imagem as pessoas entram e por qual saem (o número é quantas pessoas).">
         <MosaicoReal
           urlMotor={urlMotor}
           cameras={cameras}
           desenhar={desenhar}
+          aberta={aberta}
+          onAberta={setAberta}
           legenda={(c) => {
             const f = principal(porCamera.get(c.caso.camera));
             return f ? `Principal: ${rotuloFluxo(f)} (${f.pessoas.length})` : 'Sem fluxo claro';

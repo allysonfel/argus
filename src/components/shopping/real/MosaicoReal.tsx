@@ -94,13 +94,22 @@ type Props = {
   controles?: ReactNode;
   /** Painel ao lado da câmera ampliada. */
   detalhe?: (cam: CameraReal) => ReactNode;
+  /** Câmera ampliada controlada de fora (ex.: clique no mapa). */
+  aberta?: string | null;
+  onAberta?: (camera: string | null) => void;
 };
 
-export function MosaicoReal({ urlMotor, cameras, desenhar, legenda, controles, detalhe }: Props) {
+export function MosaicoReal({ urlMotor, cameras, desenhar, legenda, controles, detalhe, aberta: abertaFora, onAberta }: Props) {
   const [andar, setAndar] = useState<Andar | 'todos'>('T');
   const [tocando, setTocando] = useState(true);
   const [vel, setVel] = useState(1);
-  const [aberta, setAberta] = useState<string | null>(null);
+  const [abertaInterna, setAbertaInterna] = useState<string | null>(null);
+  const aberta = abertaFora !== undefined ? abertaFora : abertaInterna;
+  const setAberta = (id: string | null) => (onAberta ? onAberta(id) : setAbertaInterna(id));
+  const topo = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (abertaFora) topo.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [abertaFora]);
   const andarDe = (c: Caso) => POSICAO_NA_PLANTA[c.camera]?.andar ?? c.andar;
   const visiveis = cameras.filter((c) => andar === 'todos' || andarDe(c.caso) === andar);
   const cam = cameras.find((c) => c.caso.camera === aberta);
@@ -133,7 +142,7 @@ export function MosaicoReal({ urlMotor, cameras, desenhar, legenda, controles, d
       </div>
 
       {cam && (
-        <div className="grid grid-cols-1 gap-4 rounded-sm border border-primary/40 p-3 xl:grid-cols-3">
+        <div ref={topo} className="grid scroll-mt-4 grid-cols-1 gap-4 rounded-sm border border-primary/40 p-3 xl:grid-cols-3">
           <div className="xl:col-span-2">
             <PlayerCaso key={cam.caso.camera} urlMotor={urlMotor} caso={cam.caso} desenhar={(ctx, t, w, h) => desenhar(cam, ctx, t, w, h, 'ampliada')} />
           </div>
