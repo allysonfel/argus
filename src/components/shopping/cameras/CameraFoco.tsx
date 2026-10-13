@@ -16,7 +16,9 @@ import { localDaCamera, partesDoNome, pessoasNaImagem, type CameraMotor, type Po
 // duas análises pelo tracker_id — o vídeo nunca espera a IA.
 
 // p = caminho da pessoa (pés, 0-1) desde que entrou na imagem.
-type Track = { id: number; b: [number, number, number, number]; c: number | null; p?: Ponto[] };
+// s = sumida: o detector perdeu a pessoa há um instante e a caixa é a
+// posição prevista pelo motor (desenhada tracejada, pra não piscar).
+type Track = { id: number; b: [number, number, number, number]; c: number | null; p?: Ponto[]; s?: 1 };
 type Meta = {
   tipo: 'meta';
   ts: number;
@@ -361,10 +363,12 @@ export function CameraFoco({
       ctx.font = `600 ${fonte}px system-ui, sans-serif`;
       for (const tr of tracks) {
         const [x1, y1, x2, y2] = [tr.b[0] * W, tr.b[1] * H, tr.b[2] * W, tr.b[3] * H];
-        const cor = corDoId(tr.id);
+        const cor = corDoId(tr.id, tr.s ? 0.6 : 1);
         ctx.strokeStyle = cor;
         ctx.lineWidth = espessura;
+        if (tr.s) ctx.setLineDash([espessura * 3, espessura * 2]);
         ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+        ctx.setLineDash([]);
         ctx.fillStyle = cor;
         ctx.beginPath();
         ctx.ellipse((x1 + x2) / 2, y2, Math.max(espessura * 2, (x2 - x1) * 0.25), espessura * 1.5, 0, 0, Math.PI * 2);

@@ -1,0 +1,12 @@
+{
+  "nome": "vista-superior",
+  "rastreador": "ocsort",
+  "ocsort_iou_minimo": 0.1,
+  "ocsort_confianca_alta": 0.3,
+  "det_conf_threshold": 0.3,
+  "track_activation_threshold": 0.25,
+  "minimum_matching_threshold": 0.9,
+  "minimum_consecutive_frames_s": 0.5,
+  "lost_track_buffer_s": 1.0,
+  "min_track_duration_s": 1.5
+}

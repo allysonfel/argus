@@ -121,7 +121,8 @@ class AnalisadorCamera:
                 rastreadas = self.regras.atualizar(deteccoes, quadro.ts, largura, altura, imagem=quadro.imagem if assistida else None)
                 stats = self.regras.estatisticas()
                 # Caminho de cada pessoa só vai pra quem está assistindo.
-                caminhos = self.regras.caminhos(rastreadas.tracker_id.tolist()) if len(self.assinantes) else {}
+                sumidos = self.regras.sumidos(quadro.ts, set(rastreadas.tracker_id.tolist()))
+                caminhos = self.regras.caminhos(rastreadas.tracker_id.tolist() + [tid for tid, _ in sumidos]) if len(self.assinantes) else {}
 
             agora = time.time()
             if t_anterior is not None:
@@ -140,6 +141,17 @@ class AnalisadorCamera:
                         "c": round(float(conf), 2) if conf is not None else None,
                         # Caminho (pés, 0-1) desde que a pessoa entrou na imagem.
                         "p": caminhos.get(int(tid), []),
+                    }
+                )
+            # Perdidas há um instante: caixa prevista, pra não piscar no painel (s = sumida).
+            for tid, (x1, y1, x2, y2) in sumidos:
+                tracks.append(
+                    {
+                        "id": int(tid),
+                        "b": [round(max(0.0, x1 / largura), 4), round(max(0.0, y1 / altura), 4), round(min(1.0, x2 / largura), 4), round(min(1.0, y2 / altura), 4)],
+                        "c": None,
+                        "p": caminhos.get(int(tid), []),
+                        "s": 1,
                     }
                 )
 

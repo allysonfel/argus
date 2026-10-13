@@ -86,6 +86,18 @@ REID_GALERIA_POR_QUADRO = 1  # ~50 ms cada em CPU
 REID_GALERIA_MAX = 8
 REID_ALTURA_MIN_PX = 40
 
+# Exibição: pessoa que o detector perdeu por um instante continua no painel
+# (caixa na posição prevista, marcada como "sumida") por até este tempo, pra
+# caixa não piscar. Só vale pra quem já está há um tempo na imagem.
+EXIBIR_SUMIDO_S = 1.5
+EXIBIR_SUMIDO_DURACAO_MIN_S = 0.6
+
+# Linhas: faixa morta em volta da linha (fração da largura da imagem) pra o pé
+# tremendo em cima da linha não contar ida e volta, e quanto o cruzamento pode
+# passar das pontas (fração do comprimento da linha).
+LINHA_FAIXA_MORTA = 0.008
+LINHA_TOLERANCIA_PONTAS = 0.08
+
 
 def _iou_matriz(caixas: np.ndarray) -> np.ndarray:
     if len(caixas) == 0:
@@ -118,9 +130,71 @@ class _Track:
     galeria: deque = field(default_factory=lambda: deque(maxlen=REID_GALERIA_MAX))
     ultimo_reid_ts: float = float("-inf")
 
+    caixa: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)  # última caixa vista, px
+
     @property
     def duracao_s(self) -> float:
         return self.ultimo_ts - self.primeiro_ts
+
+
+class ContadorLinha:
+    """Entradas/saídas numa linha, pelo pé de cada pessoa (ID estável).
+
+    Diferente do sv.LineZone, o lado em que a pessoa estava fica guardado
+    enquanto o track existir: se ela some por um quadro (comum a 3 fps) ou
+    volta com o ID costurado do outro lado, o cruzamento ainda conta. O
+    cruzamento vale se o trecho entre a última posição conhecida e a atual
+    corta a linha (com folga nas pontas). Mesmo sentido do sv.LineZone:
+    "entrada" = terminar do lado em que o produto vetorial com
+    (fim - inicio) é negativo."""
+
+    def __init__(self, inicio: tuple[float, float], fim: tuple[float, float], largura: int) -> None:
+        self.a = np.array(inicio, dtype=float)
+        self.b = np.array(fim, dtype=float)
+        self.v = self.b - self.a
+        self.comprimento = float(np.hypot(*self.v)) or 1.0
+        self.faixa_morta = LINHA_FAIXA_MORTA * largura
+        self.entradas = 0
+        self.saidas = 0
+        # ID -> (lado confirmado: True = lado de "entrada", posição do pé lá)
+        self._lado: dict[int, tuple[bool, np.ndarray]] = {}
+
+    def _distancia(self, p: np.ndarray) -> float:
+        """Distância com sinal até a linha (negativa = lado de "entrada")."""
+        d = p - self.a
+        return float(d[0] * self.v[1] - d[1] * self.v[0]) / self.comprimento
+
+    def atualizar(self, tid: int, pe: tuple[float, float]) -> None:
+        p = np.array(pe, dtype=float)
+        dist = self._distancia(p)
+        if abs(dist) < self.faixa_morta:
+            return  # em cima da linha: espera definir o lado
+        lado = dist < 0
+        anterior = self._lado.get(tid)
+        self._lado[tid] = (lado, p)
+        if anterior is None or anterior[0] == lado:
+            return
+        # Onde o trecho anterior -> atual corta a linha (0 = inicio, 1 = fim)
+        p0 = anterior[1]
+        d0 = self._distancia(p0)
+        x = p0 + (p - p0) * (d0 / (d0 - dist))
+        u = float(np.dot(x - self.a, self.v)) / self.comprimento**2
+        if -LINHA_TOLERANCIA_PONTAS <= u <= 1 + LINHA_TOLERANCIA_PONTAS:
+            if lado:
+                self.entradas += 1
+            else:
+                self.saidas += 1
+
+    def esquecer(self, vivos: set[int]) -> None:
+        self._lado = {tid: v for tid, v in self._lado.items() if tid in vivos}
+
+    def renomear(self, a: int, b: int) -> None:
+        """IDs destrocados pelo Re-ID: o lado de cada um vai junto."""
+        la, lb = self._lado.pop(a, None), self._lado.pop(b, None)
+        if la is not None:
+            self._lado[b] = la
+        if lb is not None:
+            self._lado[a] = lb
 
 
 class Rastreador:
@@ -175,7 +249,7 @@ class RegrasCamera:
         self.extrator = extrator  # reid.ExtratorReid ou None
         self.tracker = Rastreador(cfg, fps_analise)
         self._tamanho: tuple[int, int] | None = None
-        self._linhas: dict[str, sv.LineZone] = {}
+        self._linhas: dict[str, ContadorLinha] = {}
         self._zonas: dict[str, sv.PolygonZone] = {}
         self._zerar_contadores()
 
@@ -214,11 +288,7 @@ class RegrasCamera:
     def _montar_geometria(self, largura: int, altura: int) -> None:
         self._tamanho = (largura, altura)
         self._linhas = {
-            l.id: sv.LineZone(
-                start=sv.Point(l.inicio[0] * largura, l.inicio[1] * altura),
-                end=sv.Point(l.fim[0] * largura, l.fim[1] * altura),
-                triggering_anchors=(sv.Position.BOTTOM_CENTER,),
-            )
+            l.id: ContadorLinha((l.inicio[0] * largura, l.inicio[1] * altura), (l.fim[0] * largura, l.fim[1] * altura), largura)
             for l in self.camera.linhas
         }
         self._zonas = {
@@ -259,6 +329,9 @@ class RegrasCamera:
                 t.pe = pe
                 t.altura_px = 0.7 * t.altura_px + 0.3 * (y2 - y1)
             t.ultimo_ts = ts
+            t.caixa = (x1, y1, x2, y2)
+            for linha in self._linhas.values():
+                linha.atualizar(tid, pe)
             t.caminho.append((round(pe[0] / largura, 4), round(pe[1] / altura, 4)))
             if not t.contado and t.duracao_s >= self.cfg.min_track_duration_s:
                 t.contado = True
@@ -271,9 +344,8 @@ class RegrasCamera:
             self.duracoes_encerradas.append(self._tracks.pop(tid).duracao_s)
         vivos = set(self._tracks)
         self._id_estavel = {bruto: est for bruto, est in self._id_estavel.items() if est in vivos}
-
         for linha in self._linhas.values():
-            linha.trigger(rastreadas)
+            linha.esquecer(vivos)
         for zid, zona in self._zonas.items():
             zona.trigger(rastreadas)
             self.ocupacao_zonas[zid] = int(zona.current_count)
@@ -373,6 +445,8 @@ class RegrasCamera:
             if trocar > manter + REID_MARGEM_TROCA:
                 ids[ia], ids[ib] = b, a
                 self._id_estavel = {bruto: (b if est == a else a if est == b else est) for bruto, est in self._id_estavel.items()}
+                for linha in self._linhas.values():
+                    linha.renomear(a, b)
                 self.trocas_desfeitas += 1
                 va, vb = vb, va
             # recém-separadas e conferidas: bons exemplos pra galeria
@@ -401,6 +475,20 @@ class RegrasCamera:
         """Caminho (pés, coordenadas 0-1) de cada pessoa pedida."""
         return {tid: list(self._tracks[tid].caminho) for tid in ids if tid in self._tracks}
 
+    def sumidos(self, ts: float, presentes: set[int]) -> list[tuple[int, tuple[float, float, float, float]]]:
+        """Pessoas que o detector perdeu há menos de EXIBIR_SUMIDO_S, com a
+        caixa onde deveriam estar agora (última caixa + velocidade). Só pra
+        exibição: não entram em ocupação nem em contagem."""
+        resultado = []
+        for tid, t in self._tracks.items():
+            dt = ts - t.ultimo_ts
+            if tid in presentes or not t.costuravel or not 0 < dt <= EXIBIR_SUMIDO_S or t.duracao_s < EXIBIR_SUMIDO_DURACAO_MIN_S:
+                continue
+            dx, dy = t.velocidade[0] * min(dt, 0.7), t.velocidade[1] * min(dt, 0.7)
+            x1, y1, x2, y2 = t.caixa
+            resultado.append((tid, (x1 + dx, y1 + dy, x2 + dx, y2 + dy)))
+        return resultado
+
     def duracoes_ativas(self) -> dict[int, float]:
         return {tid: round(t.duracao_s, 1) for tid, t in self._tracks.items()}
 
@@ -413,7 +501,7 @@ class RegrasCamera:
             "pessoas_detectadas": self.pessoas_detectadas,
             "ocupacao_zonas": [{"id": z.id, "nome": z.nome, "ocupacao": self.ocupacao_zonas.get(z.id, 0)} for z in self.camera.zonas],
             "linhas": [
-                {"id": l.id, "nome": l.nome, "entradas": int(self._linhas[l.id].in_count), "saidas": int(self._linhas[l.id].out_count)}
+                {"id": l.id, "nome": l.nome, "entradas": self._linhas[l.id].entradas, "saidas": self._linhas[l.id].saidas}
                 for l in self.camera.linhas
                 if l.id in self._linhas
             ],
