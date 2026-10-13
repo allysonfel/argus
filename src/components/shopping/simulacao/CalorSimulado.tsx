@@ -4,15 +4,15 @@ import { useMemo, useState } from 'react';
 import { Numero, Secao, Tabela } from '@/components/shopping/Comum';
 import { formatarNumero } from '@/lib/shopping/demo';
 import { AREAS, ZONAS, type Andar } from '@/lib/shopping/planta';
-import { horaDoMinuto, simular } from '@/lib/shopping/simulacao';
+import { horaDoMinuto, sementeDoDia, simular } from '@/lib/shopping/simulacao';
 import { ControlesRelogio, MapaSimulacao, SeletorAndar, noShopping, useRelogio } from './MapaSimulacao';
 
 const botao = (ativo: boolean) =>
   `h-8 rounded-sm border px-3 text-xs font-medium transition-colors ${ativo ? 'border-primary bg-primary-container text-on-primary-container' : 'border-outline-variant text-on-surface hover:bg-surface-container-low'}`;
 
 export function CalorSimulado() {
-  const sim = useMemo(() => simular(), []);
-  const relogio = useRelogio(120);
+  const relogio = useRelogio();
+  const sim = useMemo(() => simular([], sementeDoDia(relogio.dia), relogio.dia), [relogio.dia]);
   const [andar, setAndar] = useState<Andar>('T');
   const [modo, setModo] = useState<'dia' | 'hora'>('dia');
   const minuto = Math.floor(relogio.t);

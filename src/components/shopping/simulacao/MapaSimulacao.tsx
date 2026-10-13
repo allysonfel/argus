@@ -3,24 +3,44 @@
 import { useEffect, useMemo, useRef, useState, type ComponentProps } from 'react';
 import { Planta } from '@/components/shopping/Planta';
 import { ENTRADAS, ZONAS, type Andar } from '@/lib/shopping/planta';
+import { DIAS_SEMANA, agoraDemo, diaSemana, formatarData, somarDias } from '@/lib/shopping/demo';
 import { MIN_DIA, andarIdx, horaDoMinuto, posicao, type Agente, type Simulacao } from '@/lib/shopping/simulacao';
 
 // ---------- relógio do dia simulado ----------
 
+// Padrão: tempo real (1 minuto do shopping por minuto de verdade), pra
+// apresentação ao vivo. As outras velocidades aceleram o dia.
 export const VELOCIDADES = [
-  { rotulo: '1 h em 20 s', minPorSeg: 3 },
-  { rotulo: '1 h em 10 s', minPorSeg: 6 },
-  { rotulo: '1 h em 5 s', minPorSeg: 12 },
+  { rotulo: 'Tempo real', minPorSeg: 1 / 60 },
+  { rotulo: 'Acelerar: 1 h em 1 min', minPorSeg: 1 },
+  { rotulo: 'Acelerar: 1 h em 20 s', minPorSeg: 3 },
+  { rotulo: 'Acelerar: 1 h em 5 s', minPorSeg: 12 },
 ];
 
 export type Relogio = ReturnType<typeof useRelogio>;
 
-/** Minuto do dia (0 = 10h). `ref` anda a cada quadro (desenho); `t` só ~8x/s (números). */
-export function useRelogio(inicio = 120) {
-  const ref = useRef(inicio);
-  const [t, setT] = useState(inicio);
+/** Minuto do dia agora (0 = 10h), no horário do shopping. */
+function minutoAgora(): number {
+  const a = agoraDemo();
+  return Math.max(0, Math.min(MIN_DIA - 0.01, (a.hora - 10) * 60 + a.minuto));
+}
+
+/** Minuto do dia (0 = 10h). `ref` anda a cada quadro (desenho); `t` só ~8x/s (números).
+ * Começa AO VIVO: dia de hoje, no horário atual, em tempo real. Mexer no
+ * ponteiro, no dia ou na velocidade sai do ao vivo. */
+export function useRelogio() {
+  const hoje = agoraDemo().data;
+  const ref = useRef(0);
+  const [t, setT] = useState(0);
   const [tocando, setTocando] = useState(true);
-  const [vel, setVel] = useState(1);
+  const [vel, setVelEstado] = useState(0);
+  const [dia, setDiaEstado] = useState(hoje);
+  const [aoVivo, setAoVivo] = useState(true);
+  useEffect(() => {
+    // No cliente (o servidor não sabe a hora de quem está vendo)
+    ref.current = minutoAgora();
+    setT(ref.current);
+  }, []);
   useEffect(() => {
     if (!tocando) return;
     let raf = 0;
@@ -42,39 +62,82 @@ export function useRelogio(inicio = 120) {
   const irPara = (m: number) => {
     ref.current = Math.max(0, Math.min(MIN_DIA - 0.01, m));
     setT(ref.current);
+    setAoVivo(false);
   };
-  return { ref, t, tocando, setTocando, vel, setVel, irPara };
+  const setVel = (v: number) => {
+    setVelEstado(v);
+    if (v !== 0) setAoVivo(false);
+  };
+  const setDia = (d: string) => {
+    setDiaEstado(d);
+    setAoVivo(false);
+  };
+  const voltarAoVivo = () => {
+    setDiaEstado(hoje);
+    setVelEstado(0);
+    setTocando(true);
+    ref.current = minutoAgora();
+    setT(ref.current);
+    setAoVivo(true);
+  };
+  return { ref, t, tocando, setTocando, vel, setVel, irPara, dia, setDia, hoje, aoVivo, voltarAoVivo };
 }
 
 export function ControlesRelogio({ relogio }: { relogio: Relogio }) {
-  const { t, tocando, setTocando, vel, setVel, irPara } = relogio;
+  const { t, tocando, setTocando, vel, setVel, irPara, dia, setDia, hoje, aoVivo, voltarAoVivo } = relogio;
+  const minDia = somarDias(hoje, -60);
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <button onClick={() => setTocando(!tocando)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary" aria-label={tocando ? 'Pausar' : 'Tocar'}>
-        {tocando ? (
-          <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="currentColor"><rect x="3" y="2" width="3.5" height="12" rx="1" /><rect x="9.5" y="2" width="3.5" height="12" rx="1" /></svg>
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {aoVivo ? (
+          <span className="flex h-8 items-center gap-2 rounded-full bg-error/10 px-3 text-xs font-semibold text-error">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-error" /> AO VIVO
+          </span>
         ) : (
-          <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="currentColor"><path d="M4 2.5v11l9-5.5z" /></svg>
+          <button onClick={voltarAoVivo} className="flex h-8 items-center gap-2 rounded-full border border-outline-variant px-3 text-xs font-medium text-on-surface hover:bg-surface-container-low">
+            <span className="h-2 w-2 rounded-full bg-error" /> Voltar ao vivo
+          </button>
         )}
-      </button>
-      <span className="w-16 text-2xl font-semibold tabular-nums text-on-surface">{horaDoMinuto(t)}</span>
-      <div className="min-w-48 flex-1">
-        <input type="range" min={0} max={MIN_DIA} step={1} value={t} onChange={(e) => irPara(Number(e.target.value))} className="w-full" aria-label="Hora do dia" />
-        <div className="flex justify-between text-[10px] tabular-nums text-on-surface-variant">
-          {[10, 12, 14, 16, 18, 20, 22].map((h) => (
-            <button key={h} onClick={() => irPara((h - 10) * 60)} className="hover:text-on-surface">
-              {h}h
-            </button>
-          ))}
+        <div className="flex items-center gap-1">
+          <button onClick={() => setDia(somarDias(dia, -1))} disabled={dia <= minDia} className="h-8 w-8 rounded-sm border border-outline-variant text-on-surface hover:bg-surface-container-low disabled:opacity-40" aria-label="Dia anterior">
+            ‹
+          </button>
+          <input type="date" value={dia} min={minDia} max={hoje} onChange={(e) => e.target.value && setDia(e.target.value)} className="h-8 rounded-sm border border-outline-variant bg-surface px-2 text-xs text-on-surface" aria-label="Dia" />
+          <button onClick={() => setDia(somarDias(dia, 1))} disabled={dia >= hoje} className="h-8 w-8 rounded-sm border border-outline-variant text-on-surface hover:bg-surface-container-low disabled:opacity-40" aria-label="Próximo dia">
+            ›
+          </button>
         </div>
+        <span className="text-xs text-on-surface-variant">
+          {dia === hoje ? 'Hoje' : DIAS_SEMANA[diaSemana(dia)]}, {formatarData(dia)}
+        </span>
       </div>
-      <select value={vel} onChange={(e) => setVel(Number(e.target.value))} className="h-9 rounded-sm border border-outline-variant bg-surface px-2 text-xs text-on-surface" aria-label="Velocidade">
-        {VELOCIDADES.map((v, i) => (
-          <option key={v.rotulo} value={i}>
-            {v.rotulo}
-          </option>
-        ))}
-      </select>
+      <div className="flex flex-wrap items-center gap-3">
+        <button onClick={() => setTocando(!tocando)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary" aria-label={tocando ? 'Pausar' : 'Tocar'}>
+          {tocando ? (
+            <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="currentColor"><rect x="3" y="2" width="3.5" height="12" rx="1" /><rect x="9.5" y="2" width="3.5" height="12" rx="1" /></svg>
+          ) : (
+            <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="currentColor"><path d="M4 2.5v11l9-5.5z" /></svg>
+          )}
+        </button>
+        <span className="w-16 text-2xl font-semibold tabular-nums text-on-surface">{horaDoMinuto(t)}</span>
+        <div className="min-w-48 flex-1">
+          <input type="range" min={0} max={MIN_DIA} step={1} value={t} onChange={(e) => irPara(Number(e.target.value))} className="w-full" aria-label="Hora do dia" />
+          <div className="flex justify-between text-[10px] tabular-nums text-on-surface-variant">
+            {[10, 12, 14, 16, 18, 20, 22].map((h) => (
+              <button key={h} onClick={() => irPara((h - 10) * 60)} className="hover:text-on-surface">
+                {h}h
+              </button>
+            ))}
+          </div>
+        </div>
+        <select value={vel} onChange={(e) => setVel(Number(e.target.value))} className="h-9 rounded-sm border border-outline-variant bg-surface px-2 text-xs text-on-surface" aria-label="Velocidade">
+          {VELOCIDADES.map((v, i) => (
+            <option key={v.rotulo} value={i}>
+              {v.rotulo}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }

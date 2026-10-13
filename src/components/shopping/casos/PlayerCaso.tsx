@@ -93,6 +93,20 @@ export function PlayerCaso({ urlMotor, caso, desenhar, irPara, onTempo, marcas =
     }
   }
 
+  // Tela cheia: a caixa do vídeo (com o desenho por cima) ocupa a tela,
+  // mantendo a proporção pra o desenho continuar alinhado.
+  const tela = useRef<HTMLDivElement>(null);
+  const [cheia, setCheia] = useState(false);
+  useEffect(() => {
+    const ouvir = () => setCheia(document.fullscreenElement === tela.current && !!tela.current);
+    document.addEventListener('fullscreenchange', ouvir);
+    return () => document.removeEventListener('fullscreenchange', ouvir);
+  }, []);
+  function alternarTelaCheia() {
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void tela.current?.requestFullscreen?.().catch(() => {});
+  }
+
   function mudarVel() {
     const proxima = vel === 1 ? 2 : vel === 2 ? 4 : 1;
     setVel(proxima);
@@ -101,8 +115,12 @@ export function PlayerCaso({ urlMotor, caso, desenhar, irPara, onTempo, marcas =
 
   return (
     <div>
+      <div ref={tela} className={cheia ? 'flex h-full w-full items-center justify-center bg-black' : ''}>
       {/* Vídeo 4:3 (CCTV) ficaria alto demais: limita a ~65% da altura da tela. */}
-      <div className="relative mx-auto overflow-hidden rounded-sm bg-black" style={{ aspectRatio: `${caso.largura} / ${caso.altura}`, maxWidth: `calc(65vh * ${caso.largura / caso.altura})` }}>
+      <div
+        className="group relative mx-auto overflow-hidden rounded-sm bg-black"
+        style={cheia ? { aspectRatio: `${caso.largura} / ${caso.altura}`, width: `min(100vw, calc(100vh * ${caso.largura / caso.altura}))` } : { aspectRatio: `${caso.largura} / ${caso.altura}`, maxWidth: `calc(65vh * ${caso.largura / caso.altura})` }}
+      >
         <video
           ref={video}
           src={`${urlMotor}/casos/${caso.video}`}
@@ -122,6 +140,16 @@ export function PlayerCaso({ urlMotor, caso, desenhar, irPara, onTempo, marcas =
             Não foi possível carregar o vídeo do motor de visão ({urlMotor}). Confira se o motor está no ar.
           </div>
         )}
+        <button
+          type="button"
+          onClick={alternarTelaCheia}
+          className="absolute right-2 top-2 flex items-center gap-1.5 rounded-sm bg-black/60 px-2 py-1 text-xs font-medium text-white opacity-80 transition-opacity hover:opacity-100 group-hover:opacity-100"
+          title={cheia ? 'Sair da tela cheia (Esc)' : 'Tela cheia'}
+        >
+          <IconeTelaCheia saindo={cheia} />
+          {cheia ? 'Sair da tela cheia' : 'Tela cheia'}
+        </button>
+      </div>
       </div>
 
       <div className="mt-2 flex items-center gap-3">
@@ -162,6 +190,9 @@ export function PlayerCaso({ urlMotor, caso, desenhar, irPara, onTempo, marcas =
         </span>
         <button onClick={mudarVel} className="h-7 shrink-0 rounded-sm border border-outline-variant px-2 text-xs font-semibold text-on-surface" title="Velocidade">
           {vel}×
+        </button>
+        <button onClick={alternarTelaCheia} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-outline-variant text-on-surface" title="Tela cheia" aria-label="Tela cheia">
+          <IconeTelaCheia saindo={false} />
         </button>
       </div>
       <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-[11px] text-on-surface-variant">
@@ -255,4 +286,12 @@ export function desenharPessoas(
 export function hexAlfa(hex: string, alfa: number) {
   const n = parseInt(hex.slice(1), 16);
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alfa})`;
+}
+
+function IconeTelaCheia({ saindo }: { saindo: boolean }) {
+  return saindo ? (
+    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M6 2v4H2M10 2v4h4M6 14v-4H2M10 14v-4h4" /></svg>
+  ) : (
+    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4" /></svg>
+  );
 }

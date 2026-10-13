@@ -141,7 +141,15 @@ function sortear<T>(itens: T[], peso: (t: T) => number, r: number): T {
 
 // ---------- simulação ----------
 
-export function simular(acoes: Acao[] = [], semente = 20261012): Simulacao {
+/** Semente de um dia (mesmo dia = mesma simulação, dias diferentes = movimento diferente). */
+export function sementeDoDia(iso: string): number {
+  let h = 2166136261;
+  for (const ch of iso) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  return h >>> 0;
+}
+
+/** `dia` (opcional) escala os pontos pelo movimento daquele dia; sem ele, usa ontem. */
+export function simular(acoes: Acao[] = [], semente = 20261012, dia?: string): Simulacao {
   // Uma sequência aleatória por visitante: simulando uma ação, só muda o
   // que a ação afeta (o resto do dia fica igual, dá pra comparar).
   let rnd = mulberry32(semente);
@@ -273,8 +281,10 @@ export function simular(acoes: Acao[] = [], semente = 20261012): Simulacao {
     if (zi >= 0) ocupacaoZona[ZONAS[zi].id] += PASSO_AMOSTRA;
   }
 
-  const ontem = somarDias(agoraDemo().data, -1);
-  return { agentes, amostras, ocupacaoZona, escala: Math.max(1, Math.round(entradasDia(ontem) / agentes.length)) };
+  // Dia de hoje ainda não acabou: usa o mesmo dia da semana passada (dia inteiro).
+  const hoje = agoraDemo().data;
+  const ref = !dia ? somarDias(hoje, -1) : dia >= hoje ? somarDias(dia, -7) : dia;
+  return { agentes, amostras, ocupacaoZona, escala: Math.max(1, Math.round(entradasDia(ref) / agentes.length)) };
 }
 
 /** Posição de um agente no minuto t (null se fora do shopping ou dentro de loja/cinema). */

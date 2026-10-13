@@ -7,7 +7,7 @@ import type { Seta } from '@/components/shopping/Planta';
 import { SelectField } from '@/components/ui/Field';
 import { formatarNumero } from '@/lib/shopping/demo';
 import { ENTRADAS, areaPorId, centroArea, type Andar } from '@/lib/shopping/planta';
-import { simular } from '@/lib/shopping/simulacao';
+import { sementeDoDia, simular } from '@/lib/shopping/simulacao';
 import { ControlesRelogio, MapaSimulacao, SeletorAndar, useRelogio } from './MapaSimulacao';
 
 const nome = (id: string) => areaPorId(id)?.nome ?? ENTRADAS.find((e) => e.id === id)?.nome ?? (id === 'escadas' ? 'Escadas rolantes' : id);
@@ -22,8 +22,8 @@ function andarDaArea(id: string, outro?: string): Andar | undefined {
 const chaveRota = (areas: string[]) => areas.slice(0, 4).join('>');
 
 export function RotasSimuladas() {
-  const sim = useMemo(() => simular(), []);
-  const relogio = useRelogio(540);
+  const relogio = useRelogio();
+  const sim = useMemo(() => simular([], sementeDoDia(relogio.dia), relogio.dia), [relogio.dia]);
   const [andar, setAndar] = useState<Andar>('T');
   const [entrada, setEntrada] = useState('');
   const [rotaSel, setRotaSel] = useState<string | null>(null);

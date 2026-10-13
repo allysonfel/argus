@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Secao } from '@/components/shopping/Comum';
 import { Planta } from '@/components/shopping/Planta';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { SelectField } from '@/components/ui/Field';
 import { cn } from '@/lib/cn';
 import { POSICAO_NA_PLANTA, carregarCaso, carregarIndice, fmtTempo, type Caso, type PessoaCaso } from '@/lib/shopping/casos';
 import { PlayerCaso, desenharPessoas } from './PlayerCaso';
@@ -96,6 +95,21 @@ function agrupar(lista: Omit<Candidato, 'aparicoes'>[]): Candidato[] {
   return grupos.map(({ base, membros }) => ({ ...base, aparicoes: membros.length }));
 }
 
+type Busca = { q: Consulta; andar: string; incluirSemEstatura: boolean };
+
+function procurar(casos: Caso[], { q, andar, incluirSemEstatura }: Busca): Candidato[] {
+  const max = (q.cima ? 2 : 0) + (q.baixo ? 2 : 0) + (q.faixa ? 2 : 0);
+  const lista = casos
+    .filter((c) => !andar || c.andar === andar)
+    .flatMap((c) => c.pessoas.filter((p) => p.recorte).map((p) => ({ caso: c, p, nota: pontuar(p, q, incluirSemEstatura), max })))
+    .filter((r) => r.nota >= 0 && r.nota >= r.max - 2)
+    // Maior recorte primeiro: é ele que representa o grupo.
+    .sort((a, b) => b.nota - a.nota || area(b.p) - area(a.p));
+  return agrupar(lista)
+    .sort((a, b) => b.nota - a.nota || (a.p.altura_cm ?? 999) - (b.p.altura_cm ?? 999))
+    .slice(0, 24);
+}
+
 type Auditoria = { quando: string; texto: string };
 
 export function CasoCrianca({ urlMotor, usuario }: { urlMotor: string; usuario: string }) {
@@ -111,6 +125,7 @@ export function CasoCrianca({ urlMotor, usuario }: { urlMotor: string; usuario: 
   const [confirmados, setConfirmados] = useState<string[]>([]);
   const [auditoria, setAuditoria] = useState<Auditoria[]>([]);
   const [irPara, setIrPara] = useState<{ t: number; k: number } | null>(null);
+  const resultadosRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     carregarIndice(urlMotor)
@@ -122,19 +137,12 @@ export function CasoCrianca({ urlMotor, usuario }: { urlMotor: string; usuario: 
   const totalPessoas = casos?.reduce((s, c) => s + c.pessoas.length, 0) ?? 0;
   const totalCriancas = casos?.reduce((s, c) => s + c.pessoas.filter((p) => p.altura_cm != null && p.altura_cm <= 135).length, 0) ?? 0;
 
-  const resultados: Candidato[] = useMemo(() => {
-    if (!casos) return [];
-    const max = (q.cima ? 2 : 0) + (q.baixo ? 2 : 0) + (q.faixa ? 2 : 0);
-    const lista = casos
-      .filter((c) => !andar || c.andar === andar)
-      .flatMap((c) => c.pessoas.filter((p) => p.recorte).map((p) => ({ caso: c, p, nota: pontuar(p, q, incluirSemEstatura), max })))
-      .filter((r) => r.nota >= 0 && r.nota >= r.max - 2)
-      // Maior recorte primeiro: é ele que representa o grupo.
-      .sort((a, b) => b.nota - a.nota || area(b.p) - area(a.p));
-    return agrupar(lista)
-      .sort((a, b) => b.nota - a.nota || (a.p.altura_cm ?? 999) - (b.p.altura_cm ?? 999))
-      .slice(0, 24);
-  }, [q, incluirSemEstatura, casos, andar]);
+  // A busca roda enquanto a pessoa monta a descrição (prévia no botão),
+  // mas os resultados só aparecem ao clicar em Buscar.
+  const previa = useMemo(() => (casos ? procurar(casos, { q, andar, incluirSemEstatura }) : []), [q, incluirSemEstatura, casos, andar]);
+  const [buscada, setBuscada] = useState<Busca | null>(null);
+  const resultados = useMemo(() => (casos && buscada ? procurar(casos, buscada) : []), [casos, buscada]);
+  const mudouDesdeBusca = !!buscada && JSON.stringify(buscada) !== JSON.stringify({ q, andar, incluirSemEstatura });
 
   const chave = (r: Candidato) => `${r.caso.camera}#${r.p.id}`;
   const sel = resultados.find((r) => chave(r) === selId) ?? resultados[0];
@@ -148,20 +156,22 @@ export function CasoCrianca({ urlMotor, usuario }: { urlMotor: string; usuario: 
     setAuditoria((a) => [{ quando: `${agora.slice(8, 10)}/${agora.slice(5, 7)} ${agora.slice(11, 19)}`, texto: descricao }, ...a]);
   }
 
-  // O texto da família preenche os botões (sem apagar o que ele não citou).
-  function buscar(t = texto) {
-    if (!t.trim()) return;
+  // O texto da família vai marcando os botões enquanto é digitado (sem
+  // desmarcar o que ele não cita).
+  function digitar(t: string) {
     setTexto(t);
     setQ((atual) => ({ ...atual, ...interpretar(t) }));
-    setSelId(null);
-    registrar(t);
   }
 
   function mudar(parcial: Consulta) {
-    const nova = { ...q, ...parcial };
-    setQ(nova);
+    setQ((atual) => ({ ...atual, ...parcial }));
+  }
+
+  function buscar() {
+    setBuscada({ q, andar, incluirSemEstatura });
     setSelId(null);
-    registrar(descrever(nova));
+    registrar(texto.trim() ? `${texto.trim()} (${descrever(q)})` : descrever(q));
+    requestAnimationFrame(() => resultadosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
 
   if (erro) return <ErroCaso erro={erro} urlMotor={urlMotor} />;
@@ -180,43 +190,15 @@ export function CasoCrianca({ urlMotor, usuario }: { urlMotor: string; usuario: 
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <Secao titulo="Descreva a criança" descricao={casos ? `Procurando em ${casos.length} câmeras · ${totalPessoas} pessoas registradas (${totalCriancas} com estatura de criança)` : 'Carregando as câmeras…'} className="xl:col-span-2">
+        <Secao titulo="Descreva a criança" descricao={casos ? `Procurando em ${casos.length} câmeras · ${totalPessoas} pessoas registradas (${totalCriancas} com altura de criança)` : 'Carregando as câmeras…'} className="xl:col-span-2">
           <form
-            className="flex flex-wrap items-end gap-3"
+            className="flex flex-col gap-5"
             onSubmit={(e) => {
               e.preventDefault();
               buscar();
             }}
           >
-            <label className="block min-w-64 flex-1">
-              <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-on-surface-variant">O que a família informou</span>
-              <input
-                value={texto}
-                onChange={(e) => setTexto(e.target.value)}
-                className="h-10 w-full rounded-sm border border-outline-variant bg-surface px-3 text-sm text-on-surface outline-none focus:border-primary"
-                placeholder="Ex.: menina de blusa rosa e calça preta"
-              />
-            </label>
-            <SelectField label="Onde" value={andar} onChange={(e) => setAndar(e.target.value)} className="w-36">
-              <option value="">Shopping todo</option>
-              <option value="T">Térreo</option>
-              <option value="P1">Piso 1</option>
-            </SelectField>
-            <Button type="submit" className="h-10" disabled={!casos}>
-              Buscar
-            </Button>
-          </form>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-on-surface-variant">
-            Exemplos:
-            {EXEMPLOS.map((ex) => (
-              <button key={ex} onClick={() => buscar(ex)} className="rounded-full border border-outline-variant px-2.5 py-1 text-on-surface hover:bg-surface-container-low" disabled={!casos}>
-                {ex}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-4 flex flex-col gap-3 rounded-sm border border-outline-variant p-3">
-            <Grupo titulo="Idade aparente">
+            <Passo n={1} titulo="Idade aparente">
               {FAIXAS.map((f) => (
                 <Chip key={f.id} ativo={q.faixa === f.id} onClick={() => mudar({ faixa: q.faixa === f.id ? undefined : f.id })} titulo={f.dica}>
                   {f.rotulo} <span className="opacity-70">{f.dica}</span>
@@ -225,47 +207,90 @@ export function CasoCrianca({ urlMotor, usuario }: { urlMotor: string; usuario: 
               <Chip ativo={!q.faixa} onClick={() => mudar({ faixa: undefined })}>
                 Qualquer idade
               </Chip>
-            </Grupo>
-            {(['cima', 'baixo'] as const).map((parte) => (
-              <Grupo key={parte} titulo={parte === 'cima' ? 'Roupa de cima (blusa, camiseta, casaco)' : 'Roupa de baixo (calça, short, saia)'}>
+            </Passo>
+            {(['cima', 'baixo'] as const).map((parte, k) => (
+              <Passo key={parte} n={2 + k} titulo={parte === 'cima' ? 'Roupa de cima' : 'Roupa de baixo'} dica={parte === 'cima' ? 'blusa, camiseta, casaco, vestido' : 'calça, short, saia, bermuda'}>
                 {CORES.map((c) => (
                   <button
                     key={c}
                     type="button"
                     title={c}
                     onClick={() => mudar({ [parte]: q[parte] === c ? undefined : c })}
-                    className={cn('flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs capitalize', q[parte] === c ? 'border-primary bg-primary/10 font-semibold text-on-surface ring-2 ring-primary/30' : 'border-outline-variant text-on-surface hover:bg-surface-container-low')}
+                    className={cn('flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs capitalize transition-all', q[parte] === c ? 'border-primary bg-primary/10 font-semibold text-on-surface ring-2 ring-primary/30' : 'border-outline-variant text-on-surface hover:bg-surface-container-low')}
                   >
-                    <span className="inline-block h-3 w-3 rounded-full border border-black/20" style={{ background: HEX[c] }} />
+                    <span className="inline-block h-3.5 w-3.5 rounded-full border border-black/20" style={{ background: HEX[c] }} />
                     {c}
                   </button>
                 ))}
-              </Grupo>
+              </Passo>
             ))}
-            {q.faixa && (
-              <label className="flex items-center gap-2 text-xs text-on-surface-variant">
-                <input type="checkbox" checked={incluirSemEstatura} onChange={(e) => setIncluirSemEstatura(e.target.checked)} />
-                Incluir câmeras vistas de cima (lá não dá pra medir a altura, então aparecem adultos também)
-              </label>
-            )}
-            {(q.cima || q.baixo || q.faixa !== 'crianca' || texto) && (
-              <button
-                type="button"
-                className="self-start text-xs text-primary hover:underline"
-                onClick={() => {
-                  setTexto('');
-                  setQ({ faixa: 'crianca' });
-                  setSelId(null);
-                }}
-              >
-                Limpar e começar de novo
-              </button>
-            )}
-          </div>
+            <Passo n={4} titulo="Onde procurar">
+              {([['', 'Shopping todo'], ['T', 'Térreo'], ['P1', 'Piso 1']] as const).map(([v, nome]) => (
+                <Chip key={v} ativo={andar === v} onClick={() => setAndar(v)}>
+                  {nome}
+                </Chip>
+              ))}
+              {q.faixa && (
+                <label className="ml-1 flex items-center gap-2 text-xs text-on-surface-variant">
+                  <input type="checkbox" checked={incluirSemEstatura} onChange={(e) => setIncluirSemEstatura(e.target.checked)} />
+                  Incluir câmeras vistas de cima (sem altura: aparecem adultos também)
+                </label>
+              )}
+            </Passo>
 
-          {casos && (
-            <div className="mt-4">
-              <p className="mb-2 text-sm text-on-surface-variant">{resultados.length} pessoa(s) compatível(is) · cada pessoa aparece uma vez · o sistema sugere, um agente da Segurança confirma</p>
+            <div className="flex flex-col gap-2 rounded-sm bg-surface-container-low p-3">
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-on-surface-variant">
+                  O que a família informou <span className="font-normal normal-case tracking-normal">(opcional, vai marcando os campos acima)</span>
+                </span>
+                <input
+                  value={texto}
+                  onChange={(e) => digitar(e.target.value)}
+                  className="h-10 w-full rounded-sm border border-outline-variant bg-surface px-3 text-sm text-on-surface outline-none focus:border-primary"
+                  placeholder="Ex.: menina de blusa rosa e calça preta"
+                />
+              </label>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-on-surface-variant">
+                Exemplos:
+                {EXEMPLOS.map((ex) => (
+                  <button key={ex} type="button" onClick={() => digitar(ex)} className="rounded-full border border-outline-variant bg-surface px-2.5 py-1 text-on-surface hover:bg-surface-container" disabled={!casos}>
+                    {ex}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <Button type="submit" className="h-12 min-w-56 flex-1 text-base" disabled={!casos}>
+                <span className="flex items-center justify-center gap-2">
+                  <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="8.5" cy="8.5" r="5.5" /><path d="m13 13 4 4" strokeLinecap="round" /></svg>
+                  Buscar nas câmeras
+                </span>
+              </Button>
+              <span className="text-xs text-on-surface-variant">{casos ? `${previa.length} pessoa(s) compatível(is) com esta descrição` : ''}</span>
+              {(q.cima || q.baixo || q.faixa !== 'crianca' || texto || andar) && (
+                <button
+                  type="button"
+                  className="text-xs text-primary hover:underline"
+                  onClick={() => {
+                    setTexto('');
+                    setQ({ faixa: 'crianca' });
+                    setAndar('');
+                    setBuscada(null);
+                    setSelId(null);
+                  }}
+                >
+                  Limpar
+                </button>
+              )}
+            </div>
+          </form>
+
+          {buscada && (
+            <div ref={resultadosRef} className="mt-6 scroll-mt-4 border-t border-outline-variant pt-4">
+              <p className="mb-1 text-sm font-semibold text-on-surface">{resultados.length} pessoa(s) encontrada(s)</p>
+              <p className="mb-3 text-xs text-on-surface-variant">Cada pessoa aparece uma vez · o sistema sugere, um agente da Segurança confirma</p>
+              {mudouDesdeBusca && <p className="mb-3 rounded-sm bg-primary/10 px-3 py-2 text-xs text-on-surface">A descrição mudou. Clique em Buscar nas câmeras para atualizar os resultados.</p>}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
                 {resultados.map((r) => (
                   <button
@@ -378,11 +403,16 @@ function descrever(q: Consulta): string {
   return `filtros: ${partes.join(', ')}`;
 }
 
-function Grupo({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+function Passo({ n, titulo, dica, children }: { n: number; titulo: string; dica?: string; children: React.ReactNode }) {
   return (
-    <div>
-      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-on-surface-variant">{titulo}</p>
-      <div className="flex flex-wrap gap-1.5">{children}</div>
+    <div className="flex gap-3">
+      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-on-primary">{n}</span>
+      <div className="min-w-0 flex-1">
+        <p className="mb-2 text-sm font-semibold text-on-surface">
+          {titulo} {dica && <span className="text-xs font-normal text-on-surface-variant">· {dica}</span>}
+        </p>
+        <div className="flex flex-wrap items-center gap-1.5">{children}</div>
+      </div>
     </div>
   );
 }

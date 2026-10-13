@@ -58,6 +58,10 @@ CAMERAS = [
     ("demo-fast-food", True),
     ("demo-escadas-rolantes", True),
     ("demo-atrio-aereo", False),
+    ("demo-atrio-decorado", True),
+    ("demo-hiper-caixas", True),
+    ("demo-hiper-autoatendimento", True),
+    ("demo-area-eventos", True),
 ]
 
 # ---------- cor da roupa ----------

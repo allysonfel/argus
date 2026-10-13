@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { SelectField } from '@/components/ui/Field';
 import { formatarNumero } from '@/lib/shopping/demo';
 import { ZONAS, zonaPorId, type Andar } from '@/lib/shopping/planta';
-import { indiceZonas, simular, type Acao, type Simulacao } from '@/lib/shopping/simulacao';
+import { indiceZonas, sementeDoDia, simular, type Acao, type Simulacao } from '@/lib/shopping/simulacao';
 import { ControlesRelogio, MapaSimulacao, SeletorAndar, useRelogio } from './MapaSimulacao';
 
 const TIPOS = [
@@ -30,8 +30,9 @@ function passagens(sim: Simulacao, zonaId: string): number {
 }
 
 export function ZonasMortasSimuladas() {
-  const base = useMemo(() => simular(), []);
-  const relogio = useRelogio(300);
+  const relogio = useRelogio();
+  const semente = sementeDoDia(relogio.dia);
+  const base = useMemo(() => simular([], semente, relogio.dia), [semente, relogio.dia]);
   const [andar, setAndar] = useState<Andar>('P1');
   const [limite, setLimite] = useState(40);
   const indBase = useMemo(() => indiceZonas(base), [base]);
@@ -40,7 +41,7 @@ export function ZonasMortasSimuladas() {
   const [tipo, setTipo] = useState(TIPOS[0].id);
   const [acao, setAcao] = useState<Acao & { tipo: string } | null>(null);
   const [ver, setVer] = useState<'antes' | 'depois'>('antes');
-  const depois = useMemo(() => (acao ? simular([acao]) : null), [acao]);
+  const depois = useMemo(() => (acao ? simular([acao], semente, relogio.dia) : null), [acao, semente, relogio.dia]);
   const indDepois = useMemo(() => (depois ? indiceZonas(depois) : null), [depois]);
 
   const mostrando = ver === 'depois' && depois && indDepois ? { sim: depois, ind: indDepois } : { sim: base, ind: indBase };

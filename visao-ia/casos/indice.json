@@ -86,5 +86,37 @@
   "corredor": "Mezanino",
   "duracao_s": 8.07,
   "pessoas": 23
+ },
+ {
+  "camera": "demo-atrio-decorado",
+  "nome": "CAM 05 · Átrio de eventos",
+  "andar": "T",
+  "corredor": "Praça Central",
+  "duracao_s": 31.53,
+  "pessoas": 13
+ },
+ {
+  "camera": "demo-hiper-caixas",
+  "nome": "CAM 07 · Hipermercado · caixas",
+  "andar": "T",
+  "corredor": "Ala Sul",
+  "duracao_s": 35.33,
+  "pessoas": 15
+ },
+ {
+  "camera": "demo-hiper-autoatendimento",
+  "nome": "CAM 08 · Hipermercado · autoatendimento",
+  "andar": "T",
+  "corredor": "Ala Sul",
+  "duracao_s": 17.53,
+  "pessoas": 11
+ },
+ {
+  "camera": "demo-area-eventos",
+  "nome": "CAM 15 · Área de shows",
+  "andar": "P1",
+  "corredor": "Piso 1 · Ala Cinema",
+  "duracao_s": 28.13,
+  "pessoas": 16
  }
 ]

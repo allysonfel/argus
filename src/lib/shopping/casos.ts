@@ -117,6 +117,10 @@ export const POSICAO_NA_PLANTA: Record<string, { andar: Andar; x: number; y: num
   'demo-quiosques': { andar: 'P1', x: 520, y: 90, rotulo: 'CAM 12' },
   'demo-fast-food': { andar: 'P1', x: 620, y: 90, rotulo: 'CAM 13' },
   'demo-corredor-gastronomico': { andar: 'P1', x: 750, y: 280, rotulo: 'CAM 14' },
+  'demo-atrio-decorado': { andar: 'T', x: 460, y: 255, rotulo: 'CAM 05' },
+  'demo-hiper-caixas': { andar: 'T', x: 500, y: 470, rotulo: 'CAM 07' },
+  'demo-hiper-autoatendimento': { andar: 'T', x: 520, y: 380, rotulo: 'CAM 08' },
+  'demo-area-eventos': { andar: 'P1', x: 500, y: 450, rotulo: 'CAM 15' },
 };
 
 // ---------- configuração dos casos ----------
