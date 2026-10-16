@@ -82,8 +82,9 @@
   --text-headline-lg--line-height: 56px;
   --text-headline-lg--letter-spacing: -0.01em;
 
-  --text-headline-md: 32px;
-  --text-headline-md--line-height: 40px;
+  --text-headline-md: 40px;
+  --text-headline-md--line-height: 46px;
+  --text-headline-md--letter-spacing: -0.01em;
 
   --text-title-lg: 20px;
   --text-title-lg--line-height: 28px;
