@@ -15,8 +15,8 @@ import {
 
 // Simulador do módulo Câmeras IA: a pessoa escolhe o que a câmera
 // detectou, onde e qual a severidade, e vê na hora o quadro da câmera
-// e o aviso que chegaria no WhatsApp (ou o registro no painel, no caso
-// "Informativo"). Tudo simulado no navegador, sem backend.
+// e o aviso que chegaria no WhatsApp (ou o registro no painel, no
+// caso "Informativo"). Tudo simulado no navegador, sem backend.
 
 function Svg({ children }: { children: ReactNode }) {
   return (

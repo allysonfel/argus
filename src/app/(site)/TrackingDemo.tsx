@@ -5,10 +5,16 @@ import { useEffect, useState } from "react";
 import CameraTile from "./CameraTile";
 import { EVENTS, ZONES, SEVERITIES, SCENARIOS } from "./cameraData";
 
-// Cartão de demonstração "ao vivo" dentro do hero: uma janela com abas
+// Cartão de demonstração "ao vivo" dentro do hero, inspirado no widget
+// da página de referência (Sttelar Tracking): uma janela com abas
 // clicáveis do lado esquerdo, cada uma trocando o conteúdo do lado
-// direito na hora (sem navegar pra outra página). 5 pilares (Ponto IA,
-// Dispositivos no mapa, Câmeras IA, Alertas, Uso Digital).
+// direito na hora (sem navegar pra outra página). 5 pilares hoje (Ponto
+// IA, Dispositivos no mapa, Câmeras IA, Alertas, Uso Digital) — Uso Digital tinha
+// ficado de fora numa versão anterior e voltou a pedido do cliente;
+// "assinaturas" continua fora.
+// Client Component só por causa do estado da aba ativa; todo o resto da
+// página continua Server Component.
+
 type Tab = "ponto" | "dispositivos" | "cameras" | "alertas" | "uso";
 
 const TABS: { id: Tab; label: string }[] = [
@@ -19,9 +25,12 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "uso", label: "Uso Digital" },
 ];
 
-// Ordem do ciclo automático e quanto tempo cada aba fica em tela antes
-// de passar pra próxima sozinha. Clicar numa aba manualmente reinicia
-// a contagem a partir dela.
+// Ordem do ciclo automático (Ponto IA -> Rastreio -> Alertas -> Ponto
+// IA de novo...) e quanto tempo cada aba fica em tela antes de passar
+// pra próxima sozinha. Clicar numa aba manualmente também reinicia a
+// contagem a partir dela (ver o useEffect abaixo, que depende de
+// `tab`: toda troca — automática ou manual — cancela o timer antigo e
+// arma um novo pra aba atual).
 const AUTO_ADVANCE_MS: Record<Tab, number> = {
   ponto: 7000,
   dispositivos: 7000,
@@ -30,12 +39,17 @@ const AUTO_ADVANCE_MS: Record<Tab, number> = {
   uso: 7000,
 };
 
+// Fotos reais (recorte quadrado, close-up) que o cliente mandou pra
+// cada critério — em vez da bolinha com a inicial da letra.
 const CHECKS = [
   { label: "Rosto", img: "/ROSTO.png" },
   { label: "Capacete", img: "/capacete.png" },
   { label: "Uniforme", img: "/uniforme.png" },
 ];
 
+// 4 exemplos (era 6 antes de entrar o vídeo no lugar do mapa) — o vídeo
+// já mostra o mapa/os dispositivos, essa listinha é só um gostinho
+// embaixo, igual pedido.
 const DEVICES_SAMPLE = [
   { device: "Notebook", name: "Ana", city: "São Paulo, SP" },
   { device: "Celular", name: "Carlos", city: "Campinas, SP" },
@@ -43,6 +57,11 @@ const DEVICES_SAMPLE = [
   { device: "Notebook", name: "Gabriel", city: "Manaus, AM" },
 ];
 
+// 1 exemplo de alerta embaixo do vídeo, igual tinha antes (card com
+// bolinha pulsante + texto) — "ring" já vem pronto (não concatenado em
+// tempo de execução) pra classe com opacidade existir de fato no CSS
+// gerado pelo Tailwind: ele só reconhece classes que aparecem inteiras
+// e literais no código.
 const ALERTS_SAMPLE = [
   { color: "bg-error", ring: "bg-error/60", who: "Amanda", text: "atrasou 42 minutos" },
   {
@@ -53,6 +72,10 @@ const ALERTS_SAMPLE = [
   },
 ];
 
+// Ranking de exemplo (ordem por contagem, maior pra menor) — barra
+// sempre na cor primária (uma cor só, é um ranking de uma série só,
+// não faz sentido "arco-íris" aqui) com a largura já calculada em cima
+// do maior valor (sistemainterno.app = 100%).
 const USAGE_SAMPLE = [
   { site: "sistemainterno.app", count: 1156, pct: 100 },
   { site: "web.whatsapp.com", count: 843, pct: 73 },
@@ -61,9 +84,13 @@ const USAGE_SAMPLE = [
   { site: "instagram.com", count: 178, pct: 15 },
 ];
 
-// Vídeo real no lugar do mock, em cada aba. Caixa sempre 16:9
-// (aspect-video). Enquanto o arquivo não existir em public/, cai num
-// fundo sólido (bg-surface-container-high) no lugar de vídeo quebrado.
+// Vídeo real (gravação do cliente) no lugar do mock, em cada aba —
+// substitui os quadradinhos/mapa/cards que tinham antes. Caixa sempre
+// 16:9 (aspect-video), então qualquer vídeo em 1920x1080 (ou qualquer
+// resolução na mesma proporção) encaixa exato, sem sobrar nem cortar:
+// o navegador só amplia/reduz mantendo a proporção (object-cover).
+// Enquanto o arquivo não existe em public/, cai num fundo sólido
+// (bg-surface-container-high) no lugar de vídeo quebrado.
 function DemoVideo({ src }: { src: string }) {
   return (
     <div className="mt-md aspect-video w-full overflow-hidden rounded-sm border border-outline-variant/60 bg-surface-container-high">
@@ -75,7 +102,9 @@ function DemoVideo({ src }: { src: string }) {
 }
 
 // Aba "Câmeras IA": um quadro de câmera simulado que troca de cenário
-// sozinho a cada poucos segundos, com o resumo do aviso embaixo.
+// sozinho a cada poucos segundos (pessoa no muro, veículo no portão,
+// moto na doca), com o resumo do aviso embaixo. Só existe montado
+// enquanto a aba está ativa, então o ciclo recomeça a cada visita.
 function CamerasTab() {
   const [i, setI] = useState(0);
 
@@ -114,6 +143,11 @@ function CamerasTab() {
 export default function TrackingDemo() {
   const [tab, setTab] = useState<Tab>("ponto");
 
+  // Troca de aba sozinha (Ponto IA -> Rastreio -> Alertas -> Ponto IA),
+  // no tempo de cada uma (AUTO_ADVANCE_MS). Depende de `tab` de
+  // propósito: reinicia o timer toda vez que a aba muda, seja pelo
+  // próprio ciclo ou por clique manual — clicar não trava o
+  // automático, só adianta ele a partir de onde a pessoa clicou.
   useEffect(() => {
     const timer = setTimeout(() => {
       setTab((current) => {
@@ -140,7 +174,11 @@ export default function TrackingDemo() {
       </div>
 
       <div className="flex flex-col sm:flex-row">
-        {/* Abas — grid 2x2 centralizado no celular, lista vertical a partir de sm:. */}
+        {/* Abas — grid 2x2 centralizado no celular (4 abas numa linha só
+            ficava cortando/precisando rolar de lado, "Rastreio em Tempo
+            Real" é grande demais pra dividir espaço com as outras 3 numa
+            fileira só). A partir de sm: volta a ser a lista vertical de
+            sempre (sm:flex-col), uma por linha, texto à esquerda. */}
         <div className="grid grid-cols-2 gap-1 border-b border-outline-variant/60 p-xs sm:flex sm:w-[200px] sm:flex-col sm:border-b-0 sm:border-r sm:p-sm">
           {TABS.map((t, index) => (
             <button
@@ -156,6 +194,10 @@ export default function TrackingDemo() {
               }`}
             >
               {t.label}
+              {/* "Fio" de progresso: só na aba ativa, enche da esquerda pra
+                  direita no tempo do ciclo automático (dá a entender que o
+                  botão conta o tempo e é clicável). key={tab} força reiniciar
+                  do zero a cada troca, mesmo se a duração for igual à anterior. */}
               {tab === t.id && (
                 <span
                   key={tab}
@@ -168,7 +210,22 @@ export default function TrackingDemo() {
         </div>
 
         {/* Conteúdo da aba — altura fixa de propósito, pra não mudar de
-            tamanho ao trocar de aba. */}
+            tamanho ao trocar de aba (Ponto IA/Rastreio têm mais
+            conteúdo que Alertas). 500px já cabe o conteúdo das 3 sem
+            precisar de barra de rolagem (era 440px, meio curto pro
+            Rastreio com os 4 dispositivos); overflow-hidden em vez de
+            overflow-y-auto de propósito — nada de barra de rolagem
+            visível dentro do quadrado, só corta silenciosamente se
+            algum conteúdo futuro passar do espaço.
+
+            flex-1 (flex-basis:0%) só a partir de sm: — no mobile o
+            container pai é flex-col, e nessa direção a ALTURA vira o
+            eixo PRINCIPAL do flex (no desktop, flex-row, ela é eixo
+            cruzado). flex-basis:0% nesse eixo principal brigava com a
+            altura fixa e vencia, fazendo o quadrado voltar a variar de
+            tamanho por conteúdo só no celular — por isso não aparecia
+            testando em janela larga. Sem flex-1 no mobile, a altura
+            fixa (h-) manda sozinha. */}
         <div className="h-[475px] min-h-0 overflow-hidden p-md sm:flex-1">
           {tab === "ponto" && (
             <div>
@@ -184,7 +241,12 @@ export default function TrackingDemo() {
                 {CHECKS.map((c) => (
                   <div key={c.label} className="w-16 shrink-0 text-center">
                     <div className="relative mx-auto aspect-square h-10 w-10">
-                      <div className="relative h-full w-full overflow-hidden rounded-full bg-surface-container-high">
+                      {/* aspect-square garante que a caixa da foto nunca
+                          "achata" (sempre 1:1) antes do recorte circular.
+                          overflow-hidden fica só aqui dentro, pra recortar a
+                          foto em círculo sem cortar junto o selo de check
+                          (que precisa ficar por FORA do círculo). */}
+                      <div className="h-full w-full overflow-hidden rounded-full bg-surface-container-high">
                         <Image src={c.img} alt={c.label} fill sizes="40px" priority className="object-cover" />
                       </div>
                       <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-tertiary text-on-tertiary">

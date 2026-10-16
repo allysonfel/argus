@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 
 // Máquina de escrever que dispara só 1 vez, quando o elemento entra na
-// tela (IntersectionObserver) — sem loop, sem redigitar de novo.
+// tela (IntersectionObserver) — sem loop, sem redigitar de novo. Recebe
+// o texto, a className e a tag (h1 na "manchete" do hero, h2 na seção
+// Desafios) pra virar qualquer heading.
 const TYPE_SPEED_MS = 35;
 
 export default function TypingOnScroll({

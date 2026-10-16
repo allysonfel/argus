@@ -1,6 +1,7 @@
 // Dados simulados do módulo Câmeras IA (demonstração no hero e no
 // simulador interativo). Nada aqui vem de câmera de verdade: são
-// cenários fixos pra mostrar como o Argus detecta e avisa.
+// cenários fixos pra mostrar como o Argus detecta e avisa. Sem "—" em
+// nenhum texto visível (regra do projeto).
 
 export type EventKey = "pessoa" | "veiculo" | "moto";
 export type ZoneKey = "muro" | "portao" | "garagem";
@@ -80,8 +81,8 @@ export const ZONES: Record<
   },
 };
 
-// Cores de severidade vêm do guia do tema (coral, violeta, verde LED) e
-// ficam em variáveis CSS em site-theme.css.
+// Cores de severidade vêm do guia do tema (coral, violeta, verde LED)
+// e ficam em variáveis CSS em argus-theme.css.
 export const SEVERITIES: Record<
   SeverityKey,
   {

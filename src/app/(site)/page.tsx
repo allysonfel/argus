@@ -5,9 +5,16 @@ import TypingOnScroll from "./TypingOnScroll";
 import CameraSimulator from "./CameraSimulator";
 import Reveal from "./Reveal";
 
-// Título do hero em Inter (ver site-theme.css, --font-sans) — tema
-// "Oxide" pede peso 400 fixo em tudo, hierarquia vem só de tamanho e
-// tracking, nunca de peso maior. Sem travessão em nenhum texto.
+// Título do hero em Inter (ver argus-theme.css, --font-sans dessa
+// página) — tema "Oxide" pede peso 400 fixo em tudo, hierarquia vem só
+// de tamanho/tracking, nunca de peso maior nem de fonte de destaque à
+// parte (Archivo/Alliance No.1 saíram daqui por causa disso).
+
+// Copy escrita pelo cliente pro Logos [Argus] (revisão de 11/09), adaptada
+// aqui pro formato de seções que a página já usa (cards, grids, cores
+// alternando bg-surface/bg-surface-container-lowest) — sem travessão em
+// nenhum texto, por pedido explícito (regra já usada no resto do
+// projeto: reescrever com vírgula, ponto, ou parênteses em vez de "—").
 
 function IconClock() {
   return (
@@ -198,14 +205,47 @@ const FAQ = [
   },
 ];
 
-export default function LandingPage() {
+export default function ArgusPage() {
   return (
     <>
+      {/* HEADER — extraído pra ArgusHeader.tsx (Client Component): fica
+          transparente no topo da página e "aparece" ao rolar (ver
+          comentário lá pro porquê de fixed em vez de sticky). O ícone de
+          menu (☰, ver MobileMenu.tsx) abre o mesmo painel em tela cheia
+          do menu principal do site (MobileNav), até essa página ganhar
+          uma navegação própria. */}
       <ArgusHeader />
 
-      {/* HERO — vídeo de fundo cobrindo a seção inteira. Enquanto o
-          arquivo /argus-hero.mp4 não existir em public/, cai num fundo
-          sólido (bg-surface-container-high) por trás do degradê. */}
+      {/*
+        HERO — vídeo de fundo cobrindo a seção inteira (não uma coluna
+        separada: reexaminando a referência QOVES, o "hero" deles é UM
+        elemento só, com foto/vídeo de fundo em toda a extensão e o
+        texto sobreposto por cima, ancorado embaixo à esquerda no
+        celular e mais centralizado no desktop). Isso garante título,
+        subtítulo e botão sempre visíveis na primeira tela, sem precisar
+        rolar — o problema da tentativa anterior (vídeo e texto em blocos
+        empilhados) era justamente empurrar o texto pra fora da tela no
+        celular.
+
+        O vídeo (/argus-hero.mp4) ainda não existe, o cliente vai gravar
+        o próprio; até lá cai num fundo sólido (bg-surface-container-high)
+        por trás do degradê.
+
+        A pedido do cliente: checklist "Ponto IA/Dispositivos/Alertas"
+        removida daqui (o vídeo já vai deixar isso claro). O widget
+        interativo (TrackingDemo, o "quadrado" com as 3 abas) voltou,
+        sempre visível em qualquer tamanho de tela — ao lado do texto
+        no desktop (flex-row), empilhado embaixo dele no celular
+        (flex-col, herdado do container pai).
+      */}
+      {/*
+        min-h 100svh cheio agora (não mais calc(100svh-64px)): o
+        cabeçalho virou fixed e some transparente no topo (ver
+        ArgusHeader.tsx), não ocupa mais espaço no fluxo normal, então
+        não precisa mais descontar a altura dele aqui — sobra mais tela
+        pro hero, e o conteúdo (título/subtítulo/botão/quadrado) pôde
+        subir e se agrupar mais.
+      */}
       <section className="relative isolate flex min-h-[100svh] items-end overflow-hidden border-b border-outline-variant/60 lg:items-center">
         <video
           autoPlay
@@ -216,6 +256,9 @@ export default function LandingPage() {
         >
           <source src="/argus-hero.mp4" type="video/mp4" />
         </video>
+        {/* Degradê escurecendo por trás do texto, mais forte embaixo (mobile)
+            e mais forte à esquerda (desktop), pra manter contraste com
+            qualquer vídeo. */}
         <div
           aria-hidden
           className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/5 lg:bg-gradient-to-r lg:from-black/80 lg:via-black/45 lg:to-transparent"
@@ -223,6 +266,13 @@ export default function LandingPage() {
 
         <div className="relative mx-auto flex w-full min-w-0 max-w-[1200px] flex-col gap-md px-gutter pb-lg pt-24 lg:flex-row lg:items-center lg:justify-between lg:gap-xl lg:px-[4rem]">
           <div className="min-w-0 max-w-[30rem] text-center">
+            {/*
+              Título principal do hero: digita 1 vez só (TypingOnScroll,
+              sem loop) e usa a fonte Archivo (ver import acima) em vez
+              da SF Pro do resto do site, pra chegar mais perto do
+              visual da Alliance No.1 da Palantir (licenciada, sem
+              acesso) nesse tamanho grande de título.
+            */}
             <TypingOnScroll
               as="h1"
               text="Controle e segurança pra sua operação, em um só sistema."
@@ -252,7 +302,7 @@ export default function LandingPage() {
 
             <div className="mt-md">
               <Link
-                href="mailto:contato@logoscompany.io"
+                href="/contato"
                 className="argus-mono inline-flex h-12 items-center justify-center border border-primary bg-primary px-6 text-label-md text-on-primary transition-colors hover:bg-primary-hover"
               >
                 Fale Conosco Agora
@@ -260,6 +310,9 @@ export default function LandingPage() {
             </div>
           </div>
 
+          {/* Widget flutuando por cima do vídeo — a frase "Escolha o que
+              precisa, combine como quiser." mora aqui agora (antes ficava
+              junto do título), bem em cima do quadrado de propósito. */}
           <div className="w-full min-w-0 max-w-[480px] shrink-0">
             <p className="mb-sm text-center text-body-md text-white/80 sm:text-body-lg">
               Escolha o que precisa, combine como quiser.
@@ -483,7 +536,7 @@ export default function LandingPage() {
             única plataforma.
           </p>
           <Link
-            href="mailto:contato@logoscompany.io"
+            href="/contato"
             className="argus-mono mt-lg inline-flex h-12 items-center justify-center border border-primary bg-primary px-6 text-label-md text-on-primary transition-colors hover:bg-primary-hover"
           >
             Fale Conosco Agora
@@ -491,19 +544,25 @@ export default function LandingPage() {
         </Reveal>
       </section>
 
-      {/* FOOTER */}
+      {/* FOOTER — mesmo padrão do rodapé institucional do site (ver
+          Footer.tsx), sem nada a mais. */}
       <footer className="border-t border-outline-variant/60 bg-surface-container-lowest">
         <div className="mx-auto flex max-w-[1200px] flex-col gap-lg px-gutter py-xl text-label-md">
           <div>
-            <h3 className="mb-sm text-title-lg font-medium text-on-surface">Logos Company</h3>
+            <h3 className="mb-sm text-title-lg font-medium text-on-surface">Empresa</h3>
             <ul className="space-y-sm text-on-surface-variant">
               <li>
-                <Link href="/login" className="hover:text-primary">
-                  Entrar no sistema
+                <Link href="/sobre-nos" className="hover:text-primary">
+                  Sobre nós
                 </Link>
               </li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="mb-sm text-title-lg font-medium text-on-surface">Suporte</h3>
+            <ul className="space-y-sm text-on-surface-variant">
               <li>
-                <Link href="mailto:contato@logoscompany.io" className="hover:text-primary">
+                <Link href="/contato" className="hover:text-primary">
                   Contate-nos
                 </Link>
               </li>
